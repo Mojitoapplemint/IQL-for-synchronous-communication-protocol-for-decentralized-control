@@ -154,12 +154,3 @@ class RegexStringGenerator:
             
         return self.generate_training_str()+result + "x"
 
-
-
-
-RegexStringGen = RegexStringGenerator(max_star=10)
-
-result = RegexStringGen.generate_simulation_str()
-
-print(result, len(result))
-
