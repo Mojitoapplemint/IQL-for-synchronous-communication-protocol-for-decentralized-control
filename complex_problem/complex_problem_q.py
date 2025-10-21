@@ -34,11 +34,32 @@ agent_2_row_nums = {
     (-1, '$'):10
 }
 
-def get_action(q_table, state, epsilon):
+class QAgent:
+    def __init__(self, q_table, row_nums):
+        self.q_table = q_table
+        self.row_nums = row_nums
+        self.current_row_num = -1
+        self.action = None
+        
+        
+    def get_action(self, observation, epsilon):
+        self.current_row_num = self.row_nums[observation]
+        
+        if random.uniform(0, 1) < epsilon:
+            self.action = np.argmin(self.q_table[self.current_row_num]) # Explore: choose the action that is not best
+        else:
+            self.action = np.argmax(self.q_table[self.current_row_num])  # Exploit: best action from Q-table
+
+        return self.action
+    
+
+def get_action(q_table, row_num, epsilon):
     if random.uniform(0, 1) < epsilon:
-        return np.argmin(q_table[state]) # Explore: choose the action that is not best
+        return np.argmin(q_table[row_num]) # Explore: choose the action that is not best
     else:
-        return np.argmax(q_table[state])  # Exploit: best action from Q-table
+        return  np.argmax(q_table[row_num])  # Exploit: best action from Q-table
+    
+
 
 def q_training(env, epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1):
     
