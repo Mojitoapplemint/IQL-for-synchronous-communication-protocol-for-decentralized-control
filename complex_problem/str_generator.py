@@ -107,7 +107,7 @@ class RegexStringGenerator:
         
         return result
     
-    def generate_training_str(self):
+    def generate_half_training_str(self):
         # Build the complete string
         result = ""
         
@@ -119,12 +119,10 @@ class RegexStringGenerator:
         
         return result
     
-        
-    def generate_simulation_str(self):
+    def generate_maintenance_str(self):
+        result=""
         
         total_count = random.randint(0, self.max_star)
-
-        result = ""
         
         for _ in range(total_count):
             choice = random.choice([0, 1])
@@ -151,6 +149,28 @@ class RegexStringGenerator:
                     result += "a"
                 else:
                     result += "b" + self.gen_y_star() + "x" + "a"
+                    
+        return result
+    
+        
+    def generate_full_training_str(self):
+        result = self.generate_half_training_str()[:-1]
+                
+        num_maintenance_str = random.randint(0, self.max_star)
+        
+        for _ in range(num_maintenance_str):
+            result += self.generate_maintenance_str()        
             
-        return self.generate_training_str()+result + "x"
+        return result + "x"
+    
+    def generate_simulation_str(self):
+        result = self.generate_half_training_str()
+                
+        num_maintenance_str = random.randint(0, self.max_star)
+        
+        for _ in range(num_maintenance_str):
+            result += self.generate_maintenance_str()
+            result += "x"   
+            
+        return result
 
