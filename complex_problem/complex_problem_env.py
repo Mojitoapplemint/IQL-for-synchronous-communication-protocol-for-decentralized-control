@@ -158,6 +158,7 @@ class ComplexEnv(gym.Env):
             reward += 50
         
         elif self.string[self.string_index]=="$" and self.global_state == 4:
+            # condition for simulation where agent successfully disable x at state 4
             truncated = True
         
         config = (self.global_state, self.agent_1_observation, self.agent_2_observation)
