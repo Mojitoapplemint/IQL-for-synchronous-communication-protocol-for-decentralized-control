@@ -182,9 +182,6 @@ def get_action(q_table, opponent_in_dead_state, row_num, epsilon):
         
 
 def q_training(env, q_1, q_2,epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1):
-    comm_count=0
-    dont_comm_count=0
-    
     for epoch in range(epochs):
         if (epoch%100==0):
                 print(str(100*epoch/epochs)+"%","done" , end="\r")
@@ -204,9 +201,6 @@ def q_training(env, q_1, q_2,epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1):
         agent_1_communicate = -1
         agent_2_communicate = -1
         
-        q_1_update_delayed = False
-        q_2_update_delayed = False
-        
         reward_1 = 0
         reward_2 = 0
         
@@ -220,9 +214,8 @@ def q_training(env, q_1, q_2,epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1):
                 agent_1_row_num = len(ROW_NUMS_1)+ROW_NUMS_1[(agent_1_observation, curr_symbol)] if agent_2_in_dead_state else ROW_NUMS_1[(agent_1_observation, curr_symbol)]
 
                 
-                if q_1_update_delayed:
+                if agent_1_prev_row_num != -1 :
                     # Q-value update for agent 1
-                    
                     q_1[agent_1_prev_row_num][agent_1_communicate] += alpha * (reward_1 + gamma * np.max(q_1[agent_1_row_num]) - q_1[agent_1_prev_row_num][agent_1_communicate])
                     reward_1 = 0
                 
@@ -237,7 +230,6 @@ def q_training(env, q_1, q_2,epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1):
                 
                 curr_symbol=info['input_alphabet']
                 
-                q_1_update_delayed = True
                 agent_1_prev_row_num = agent_1_row_num
                             
             if curr_symbol in ['x', 'y', 'z', 's', 't', 'r']:
@@ -245,17 +237,12 @@ def q_training(env, q_1, q_2,epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1):
                 agent_2_row_num = len(ROW_NUMS_2)+ROW_NUMS_2[(agent_2_observation, curr_symbol)] if agent_1_in_dead_state else ROW_NUMS_2[(agent_2_observation, curr_symbol)]
 
                 
-                if q_2_update_delayed:
+                if agent_2_prev_row_num != -1 :
                     # Q-value update for agent 2
                     q_2[agent_2_prev_row_num][agent_2_communicate] += alpha * (reward_2 + gamma * np.max(q_2[agent_2_row_num]) - q_2[agent_2_prev_row_num][agent_2_communicate])
                     reward_2 = 0
                 
                 agent_2_communicate = get_action(q_2, agent_1_in_dead_state, agent_2_row_num, epsilon)
-                
-                if agent_2_communicate==0:
-                    comm_count+=1
-                else:
-                    dont_comm_count+=1
                 
                 config, reward, terminated, truncated, info = env.step((agent_id, agent_2_communicate))
                 
@@ -264,10 +251,9 @@ def q_training(env, q_1, q_2,epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1):
                 agent_1_in_dead_state = agent_1_observation == -1
                 
                 reward_2 += reward
-                
+                                
                 curr_symbol=info['input_alphabet']
                 
-                q_2_update_delayed = True
                 agent_2_prev_row_num = agent_2_row_num
         
         reward_1 += reward
@@ -278,7 +264,6 @@ def q_training(env, q_1, q_2,epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1):
         q_1[agent_1_prev_row_num][agent_1_communicate] += alpha * (reward_1 + gamma * 0 - q_1[agent_1_prev_row_num][agent_1_communicate])
         q_2[agent_2_prev_row_num][agent_2_communicate] += alpha * (reward_2 + gamma * 0 - q_2[agent_2_prev_row_num][agent_2_communicate])
 
-    print(comm_count, dont_comm_count)
 
 q_training_env = gym.make('EvenMoreComplexEnv-v0', render_mode=None)
 
@@ -293,8 +278,8 @@ q_2 = np.zeros((2*len(ROW_NUMS_2), q_training_env.action_space.n))
 q_training(q_training_env, q_1, q_2, epochs=1000000, alpha=0.01, gamma=0.5, epsilon=0.1)
 
 
-q_1_df = pd.DataFrame(q_1, columns=["communicate", "do not communcate"])
-q_2_df = pd.DataFrame(q_2, columns=["communicate", "do not communcate"])
+q_1_df = pd.DataFrame(q_1, columns=["do not communcate", "communicate"])
+q_2_df = pd.DataFrame(q_2, columns=["do not communcate", "communicate"])
 
 q_1_df.to_csv(f'even_more_complex_problem/demo_q1_table.csv')
 q_2_df.to_csv(f'even_more_complex_problem/demo_q2_table.csv')

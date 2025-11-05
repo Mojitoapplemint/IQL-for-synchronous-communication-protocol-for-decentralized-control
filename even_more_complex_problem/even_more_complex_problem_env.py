@@ -165,19 +165,19 @@ class EvenMoreComplexEnv(gym.Env):
         self.global_state = self.global_po_transitions[self.global_state].get(curr_symbol)
         if agent_id==1:
             self.agent_1_observation = self.local_po_transitions[self.agent_1_observation].get(curr_symbol)
-            if communicate == 0:
+            if communicate == 1:
                 reward-=self.COMMUNICATE_COST
                 self.agent_2_observation = self.local_po_transitions[self.agent_2_observation].get(curr_symbol)
         elif agent_id==2:
             self.agent_2_observation = self.local_po_transitions[self.agent_2_observation].get(curr_symbol)
-            if communicate == 0:
+            if communicate == 1:
                 reward-=self.COMMUNICATE_COST
                 self.agent_1_observation = self.local_po_transitions[self.agent_1_observation].get(curr_symbol)
         else:
             raise ValueError("Invalid agent_id. Must be 1 or 2.")
                 
         if self.render_mode == 'human':
-            print(f"\nAgent {agent_id} {'communicated' if communicate==0 else 'did not communicate'} on '{curr_symbol}'")
+            print(f"\nAgent {agent_id} {'communicated' if communicate==1 else 'did not communicate'} on '{curr_symbol}'")
             self.render()
         
         self.string_index += 1
@@ -185,8 +185,6 @@ class EvenMoreComplexEnv(gym.Env):
         curr_symbol=self.string[self.string_index]
         
         # reward assignment
-            
-        
         if self.global_state ==11 and (self.agent_1_observation ==11 or self.agent_2_observation ==11):
             reward += 200
             terminated = True
@@ -226,7 +224,7 @@ class EvenMoreComplexEnv(gym.Env):
             if not (agent_1_disable_c or agent_2_disable_c):
                 self.global_state = self.simulation_transitions[self.global_state].get(curr_symbol)
                 self.agent_1_observation = self.local_po_transitions[self.agent_1_observation].get(curr_symbol)
-                if communicate == 0:
+                if communicate == 1:
                     self.communication_count+=1
                     self.agent_2_observation = self.local_po_transitions[self.agent_2_observation].get(curr_symbol)
             
@@ -235,18 +233,18 @@ class EvenMoreComplexEnv(gym.Env):
             self.global_state = self.simulation_transitions[self.global_state].get(curr_symbol)
             if agent_id==1:
                 self.agent_1_observation = self.local_po_transitions[self.agent_1_observation].get(curr_symbol)
-                if communicate == 0:
+                if communicate ==1:
                     self.communication_count+=1
                     self.agent_2_observation = self.local_po_transitions[self.agent_2_observation].get(curr_symbol)
             elif agent_id==2:
                 self.agent_2_observation = self.local_po_transitions[self.agent_2_observation].get(curr_symbol)
-                if communicate == 0:
+                if communicate == 1:
                     self.communication_count+=1
                     self.agent_1_observation = self.local_po_transitions[self.agent_1_observation].get(curr_symbol)
             else:
                 raise ValueError("Invalid agent_id. Must be 1 or 2.")
             
-            if communicate == 0:
+            if communicate == 1:
                 print(f"\nAgent {agent_id} communicated on '{curr_symbol}'")
 
             self.simulate()
