@@ -1,4 +1,6 @@
-even_more_complex_problem/demo_q1_table.csv
-even_more_complex_problem/demo_q2_table.csv
-complex_problem/demo_q1_table.csv
-complex_problem/demo_q2_table.csv
+even_more_complex_problem/*.csv
+even_more_complex_problem/*.csv
+cyclic_problem/*.csv
+cyclic_problem/*.csv
+benchmark_problem/*.csv
+benchmark_problem/*.csv
