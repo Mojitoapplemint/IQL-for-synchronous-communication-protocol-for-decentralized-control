@@ -82,7 +82,7 @@ class BenchmarkEnv(gym.Env):
         
         self.string_index += 1
         if self.render_mode == 'human':
-            print(f"\nAgent {agent_id} {'communicated' if communicate else 'did not communicate'} on '{curr_symbol}'")
+            print(f"\nAgent {agent_id} {'communicated' if communicate==1 else 'did not communicate'} on '{curr_symbol}'")
             self.render()
         
         if self.string[self.string_index]=='s':

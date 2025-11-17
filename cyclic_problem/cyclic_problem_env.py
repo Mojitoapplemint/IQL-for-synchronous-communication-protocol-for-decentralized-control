@@ -117,7 +117,7 @@ class CylicEnv(gym.Env):
             raise ValueError("Invalid agent_id. Must be 1 or 2.")
                 
         if self.render_mode == 'human':
-            print(f"\nAgent {agent_id} {'communicated' if communicate else 'did not communicate'} on '{curr_symbol}'")
+            print(f"\nAgent {agent_id} {'communicated' if communicate==1 else 'did not communicate'} on '{curr_symbol}'")
             self.render()
         
         self.string_index += 1
@@ -134,16 +134,19 @@ class CylicEnv(gym.Env):
             curr_symbol=self.string[self.string_index]
         
         # Penalty Assignment
-        if self.agent_0_state != 5 and ( self.agent_1_belief in [-1,5] and self.agent_2_belief in [-1,5]): 
-            reward -= 100
+        # if self.agent_0_state != 5 and ( self.agent_1_belief in [-1,5] and self.agent_2_belief in [-1,5]): 
+        #     reward -= 100
+        #     terminated = True
+        if self.agent_1_belief == -1 and self.agent_2_belief == -1:
             terminated = True
+            reward -= 100
         elif self.agent_0_state == 5 and not(self.agent_1_belief == 5 or self.agent_2_belief == 5):
             reward -= 100
             terminated = True
         
         elif self.string[self.string_index]== "$" and self.agent_0_state == 5 and (self.agent_1_belief == 5 or self.agent_2_belief == 5):
             terminated = True
-            reward += 50
+            reward += 200
         
         config = (self.agent_0_state, self.agent_1_belief, self.agent_2_belief)
         
@@ -179,7 +182,7 @@ class CylicEnv(gym.Env):
         curr_symbol=self.string[self.string_index]
         
         if self.render_mode == 'human':
-            print(f"\nAgent {agent_id} {'communicated' if communicate else 'did not communicate'} on '{curr_symbol}'")
+            print(f"\nAgent {agent_id} {'communicated' if communicate==1 else 'did not communicate'} on '{curr_symbol}'")
             self.simulate()
         
         if self.agent_1_belief == -1 and self.agent_2_belief == -1:

@@ -117,7 +117,7 @@ q_training_env = gym.make('CylicEnv-v0', render_mode=None, string_mode="full")
 q_1 = np.zeros((len(PHI), q_training_env.action_space.n))
 q_2 = np.zeros((len(PHI), q_training_env.action_space.n))
 
-q_training(q_training_env, q_1, q_2, epochs=1000000, alpha=0.01, gamma=0.5, epsilon=0.1)
+q_training(q_training_env, q_1, q_2, epochs=10000, alpha=0.001, gamma=0.5, epsilon=0.1)
 
 q_1_df = pd.DataFrame(q_1, columns=["do not communcate", "communicate"])
 q_2_df = pd.DataFrame(q_2, columns=["do not communcate", "communicate"])
