@@ -29,35 +29,41 @@ ROW_NUMS = {
 fail_count = 0
 test_count = 100000
 
+string_mode = "simulation" # options: "simulation", "half", "full"
+
+env = gym.make("CylicEnv-v0", render_mode = None, string_mode=string_mode)
+
 for i in range (test_count):
+    # print(i)
     if (i%100==0):
-            print(str(100*i/test_count)+"%","done" , end="\r")
-    env = gym.make("CylicEnv-v0", render_mode = None, string_mode="full")
+        print(str(100*i/test_count)+"%","done" , end="\r")
 
     terminated = False
-    truncated = False
+    simulation_result = False
 
     config, info = env.reset()
 
     global_state, agent_1_observation, agent_2_observation = config
 
     curr_symbol=info['input_alphabet']
+    
+    string = info['string']
 
     agent_1_in_dead_state = False
     agent_2_in_dead_state = False
 
-    while not(terminated or truncated):
+    while not(terminated):
         if curr_symbol == "a":
             
             agent_id=1
             agent_1_row_num = ROW_NUMS[(agent_2_in_dead_state, agent_1_observation)]
             
             if agent_2_in_dead_state:
-                agent_1_communicate = 1
+                agent_1_communicate = 0
             else:
                 agent_1_communicate = np.argmax(q_1[agent_1_row_num])
             
-            config, reward, terminated, truncated, info = env.step((agent_id, agent_1_communicate))
+            config, reward, terminated, simulation_result, info = env.step((agent_id, agent_1_communicate))
             
             global_state, agent_1_observation, agent_2_observation = config
             
@@ -70,17 +76,24 @@ for i in range (test_count):
             agent_2_row_num = ROW_NUMS[(agent_1_in_dead_state, agent_2_observation)]
             
             if agent_1_in_dead_state:
-                agent_2_communicate = 1
+                agent_2_communicate = 0
             else:        
                 agent_2_communicate = np.argmax(q_2[agent_2_row_num])
-            config, reward, terminated, truncated, info = env.step((agent_id, agent_2_communicate))
+            config, reward, terminated, simulation_result, info = env.step((agent_id, agent_2_communicate))
             
             global_state, agent_1_observation, agent_2_observation = config
             
             agent_1_in_dead_state = agent_1_observation == -1
             
             curr_symbol=info['input_alphabet']
-    if global_state != agent_1_observation and global_state != agent_2_observation:
-        fail_count += 1
+    
+    if string_mode=="simulation":
+        if not simulation_result:
+            fail_count += 1
+    else:
+        if global_state != agent_1_observation and global_state != agent_2_observation:
+            fail_count += 1
+    
 
-print(f"Failure Rate over {test_count} simulations: {fail_count/test_count*100}%")
+print(f"String mode: {string_mode} / Failure Rate over {test_count} session: {fail_count/test_count*100}%")
+

@@ -34,14 +34,14 @@ class CylicEnv(gym.Env):
         -1:{'a':-1, 'b':-1, 'x':-1, 'y':-1},
     }
     
-    metadata = {'render_modes': ['human', 'simulation'], 'string_modes': ['full', 'half', 'simulation']}
+    metadata = {'render_modes': ['human'], 'string_modes': ['full', 'half', 'simulation']}
     
     def __init__(self, string_mode="full", render_mode=None, max_star=5):
         self.string_generator = RegexStringGenerator(max_star=max_star)
         self.action_space = gym.spaces.Discrete(2)  # Actions: 0: communicate, 1:don't communicate
         self.observation_space = gym.spaces.Box(low=-1, high=5, shape=(3,), dtype=np.int32)
-        
-        assert string_mode is None or string_mode in self.metadata['string_modes']
+    
+        assert string_mode in self.metadata['string_modes']
         self.string_mode = string_mode
         
         assert render_mode is None or render_mode in self.metadata['render_modes']
@@ -61,33 +61,37 @@ class CylicEnv(gym.Env):
         self.agent_2_belief = 0
         
         if self.render_mode == 'human':
-            print(f"\nNew Episode: {self.string}")
-            self.render()
-            
-        if self.render_mode == "simulation":
-            print(f"\nSimulation String: {self.string}")
+            print(f"\nNew Episode: string_mode:{self.string_mode}, string: {self.string}")
+            if self.string_mode == "simulation":
+                print(f"\nStarting Simulation Mode. This is not a training episode.")
+                self.simulate()
+            else:
+                self.render()
         
         curr_symbol=self.string[self.string_index]
         
         while curr_symbol in ['x','y']:
-            if self.render_mode == 'human':
-                self.render()
-            if self.render_mode == "simulation":
-                self.simulate(False)
             self.agent_0_state = self.agent_0_transitions[self.agent_0_state].get(curr_symbol)
             self.agent_1_belief = self.bottom_transitions[self.agent_1_belief].get(curr_symbol)
             self.agent_2_belief = self.bottom_transitions[self.agent_2_belief].get(curr_symbol)
             self.string_index += 1
             curr_symbol=self.string[self.string_index]
+            if self.render_mode == 'human':
+                if self.string_mode == "simulation":
+                    self.simulate()
+                else:
+                    self.render()
 
         
         config=(self.agent_0_state, self.agent_1_belief, self.agent_2_belief)
         
-        info={"input_alphabet":self.string[self.string_index]}
+        info={"input_alphabet":self.string[self.string_index], "string":self.string}
         return np.array(config, dtype=np.int32), info
         
     def step(self, action):
-
+        if self.string_mode == "simulation":
+            return self.simultaion_step(action)
+        
         reward = 0
         agent_id, communicate = action
         info={}
@@ -116,32 +120,16 @@ class CylicEnv(gym.Env):
             print(f"\nAgent {agent_id} {'communicated' if communicate else 'did not communicate'} on '{curr_symbol}'")
             self.render()
         
-        if self.render_mode == "simulation":
-            if communicate == 1:
-                print(f"\nAgent {agent_id} communicated on '{curr_symbol}'")
-            self.simulate(False)
-        
         self.string_index += 1
         
         curr_symbol=self.string[self.string_index]
         
-
         while curr_symbol in ['x','y']:
-            if (self.agent_1_belief == 4 or self.agent_2_belief == 4) and self.agent_0_state == 4 and self.render_mode == "simulation":
-                self.simulate(True)
-                if  curr_symbol == 'y':
-                    self.agent_0_state = self.agent_0_transitions[self.agent_0_state].get(curr_symbol)
-                    self.agent_1_belief = self.bottom_transitions[self.agent_1_belief].get(curr_symbol)
-                    self.agent_2_belief = self.bottom_transitions[self.agent_2_belief].get(curr_symbol)
-                    self.simulate(False)
-            else:
-                self.agent_0_state = self.agent_0_transitions[self.agent_0_state].get(curr_symbol)
-                self.agent_1_belief = self.bottom_transitions[self.agent_1_belief].get(curr_symbol)
-                self.agent_2_belief = self.bottom_transitions[self.agent_2_belief].get(curr_symbol)
-                if self.render_mode == 'human':
-                    self.render()
-                elif self.render_mode == "simulation":
-                    self.simulate(False)
+            self.agent_0_state = self.agent_0_transitions[self.agent_0_state].get(curr_symbol)
+            self.agent_1_belief = self.bottom_transitions[self.agent_1_belief].get(curr_symbol)
+            self.agent_2_belief = self.bottom_transitions[self.agent_2_belief].get(curr_symbol)
+            if self.render_mode == 'human':
+                self.render()
             self.string_index += 1
             curr_symbol=self.string[self.string_index]
         
@@ -157,10 +145,6 @@ class CylicEnv(gym.Env):
             terminated = True
             reward += 50
         
-        elif self.string[self.string_index]=="$" and self.agent_0_state == 4:
-            # condition for simulation where agent successfully disable x at state 4
-            truncated = True
-        
         config = (self.agent_0_state, self.agent_1_belief, self.agent_2_belief)
         
         info={"input_alphabet":self.string[self.string_index]}
@@ -171,19 +155,109 @@ class CylicEnv(gym.Env):
         print(f"Current symbol: '{self.string[self.string_index]}'")
         print(f"Config: <{self.agent_0_state}, {self.agent_1_belief}, {self.agent_2_belief}>")
     
-    def simulate(self, disabled):
+    def simultaion_step(self, action):
+        agent_id, communicate = action
+        terminated = False
+        simulation_result = False # whether the simulation ends in success or failure
+        
+        curr_symbol=self.string[self.string_index]
+        self.agent_0_state = self.agent_0_transitions[self.agent_0_state].get(curr_symbol)
+        if agent_id==1:
+            self.agent_1_belief = self.bottom_transitions[self.agent_1_belief].get(curr_symbol)
+            if communicate == 1:
+                self.communication_count+=1
+                self.agent_2_belief = self.bottom_transitions[self.agent_2_belief].get(curr_symbol)
+        elif agent_id==2:
+            self.agent_2_belief = self.bottom_transitions[self.agent_2_belief].get(curr_symbol)
+            if communicate == 1:
+                self.communication_count+=1
+                self.agent_1_belief = self.bottom_transitions[self.agent_1_belief].get(curr_symbol)
+        else:
+            raise ValueError("Invalid agent_id. Must be 1 or 2.")
+        
+        self.string_index += 1
+        curr_symbol=self.string[self.string_index]
+        
+        if self.render_mode == 'human':
+            print(f"\nAgent {agent_id} {'communicated' if communicate else 'did not communicate'} on '{curr_symbol}'")
+            self.simulate()
+        
+        if self.agent_1_belief == -1 and self.agent_2_belief == -1:
+            terminated=True
+            config = (self.agent_0_state, self.agent_1_belief, self.agent_2_belief)
+        
+            info={"input_alphabet":self.string[self.string_index]}
+        
+            return np.array(config, dtype=np.int32), 0, terminated, simulation_result, info
+        
+        while curr_symbol in ['x','y']:
+            if curr_symbol == 'y':
+                self.agent_0_state = self.agent_0_transitions[self.agent_0_state].get(curr_symbol)
+                self.agent_1_belief = self.bottom_transitions[self.agent_1_belief].get(curr_symbol)
+                self.agent_2_belief = self.bottom_transitions[self.agent_2_belief].get(curr_symbol)
+                self.string_index += 1
+                curr_symbol=self.string[self.string_index]
+                if self.render_mode == 'human':
+                    self.simulate()
+            else:
+                if self.agent_0_state == 4:
+                    agent_1_disable_x = (self.agent_1_belief == 4)
+                    agent_2_disable_x = (self.agent_2_belief == 4)     
+                    
+                    if agent_1_disable_x or agent_2_disable_x:
+                        self.string_index += 1
+                        curr_symbol=self.string[self.string_index]
+                        if self.render_mode == 'human':
+                            self.simulate(agent_1_disable_x, agent_2_disable_x)
+                    
+                    else:
+                        self.agent_0_state = self.agent_0_transitions[self.agent_0_state].get(curr_symbol)
+                        self.agent_1_belief = self.bottom_transitions[self.agent_1_belief].get(curr_symbol)
+                        self.agent_2_belief = self.bottom_transitions[self.agent_2_belief].get(curr_symbol)
+                        if self.render_mode == 'human':
+                            print("Both agents failed to disable 'x' at state 4.")        
+                            self.simulate()
+                        terminated=True
+                        break
+                else:
+                    self.agent_0_state = self.agent_0_transitions[self.agent_0_state].get(curr_symbol)
+                    self.agent_1_belief = self.bottom_transitions[self.agent_1_belief].get(curr_symbol)
+                    self.agent_2_belief = self.bottom_transitions[self.agent_2_belief].get(curr_symbol)
+                    self.string_index += 1
+                    curr_symbol=self.string[self.string_index]
+                    if self.render_mode == 'human':
+                        self.simulate()
+
+        
+        if self.string[self.string_index]=="$" and self.agent_0_state == 4:
+            # condition for simulation where agent successfully disable x at state 4
+            terminated = True
+            simulation_result = True
+        elif self.string[self.string_index]=="$":
+            terminated = True
+        
+        config = (self.agent_0_state, self.agent_1_belief, self.agent_2_belief)
+        
+        info={"input_alphabet":self.string[self.string_index]}
+        
+        return np.array(config, dtype=np.int32), 0, terminated, simulation_result, info
+        
+        
+    
+    def simulate(self, agent_1_disable_x=False, agent_2_disable_x=False):
         a = [" ", " ", " ", " ", " "," "]
 
         a[self.agent_0_state] = "#"
 
-        block = "X" if disabled else "-"
+        block = "X" if (agent_1_disable_x or agent_2_disable_x) else "-"
 
         print(f"Config: <{self.agent_0_state}, {self.agent_1_belief}, {self.agent_2_belief}>, Current symbol: '{self.string[self.string_index]}', # comm: {self.communication_count}")
-        if disabled:
-            if self.agent_1_belief == 4:
-                print("Agent 1 disabled x")
-            elif self.agent_2_belief == 4:
-                print("Agent 2 disabled x")
+
+        if agent_1_disable_x:
+            print("Agent 1 is disabled 'c' at state:" , self.agent_1_belief)
+        if agent_2_disable_x:
+            print("Agent 2 is disabled 'c' at state:" , self.agent_2_belief)
+        
                 
         
         print(
@@ -207,7 +281,7 @@ class CylicEnv(gym.Env):
          "     + - +   a   + - +    x     + - +",
         sep="\n")
         
-        time.sleep(2)
+        time.sleep(1)
         clear_output()
         print()
         

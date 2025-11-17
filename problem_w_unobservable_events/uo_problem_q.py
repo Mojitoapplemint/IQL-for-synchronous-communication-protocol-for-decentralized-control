@@ -174,7 +174,7 @@ PHI_2={
 
 def get_action(q_table, opponent_in_dead_state, row_num, epsilon):
     if opponent_in_dead_state:
-        return 1
+        return 0
     if random.uniform(0, 1) < epsilon:
         return np.argmin(q_table[row_num]) # Explore: choose the action that is not best
     else:

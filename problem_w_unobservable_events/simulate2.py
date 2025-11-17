@@ -212,7 +212,7 @@ for i in range (test_count):
 
             
             if agent_2_in_dead_state:
-                agent_1_communicate = 1
+                agent_1_communicate = 0
             else:
                 agent_1_communicate = np.argmax(q_1[agent_1_row_num])
                 
@@ -230,7 +230,7 @@ for i in range (test_count):
             agent_2_row_num = len(ROW_NUMS_2)+ROW_NUMS_2[(agent_2_observation, curr_symbol)] if agent_1_in_dead_state else ROW_NUMS_2[(agent_2_observation, curr_symbol)]
 
             if agent_1_in_dead_state:
-                agent_2_communicate = 1
+                agent_2_communicate = 0
             else:        
                 agent_2_communicate = np.argmax(q_2[agent_2_row_num])
 

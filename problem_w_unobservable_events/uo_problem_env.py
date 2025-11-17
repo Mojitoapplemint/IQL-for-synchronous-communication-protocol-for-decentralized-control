@@ -17,6 +17,7 @@ class UOEnv(gym.Env):
     #   b21 -> x,  b22 -> y,  b23 -> z
     #   e21 -> s,  e22 -> t,  e23 -> r
     
+    # Actual transitions of the system
     simulation_transitions={
         1: {'a':2, 'd':3},
         2: {'d':4, 'x':6},
@@ -39,7 +40,8 @@ class UOEnv(gym.Env):
         21:{'s':16}  
     }
     
-    po={
+    # Converting agent beliefs to states in agent 0 observer for better readability
+    m_bottom={
         1:  {1,3},
         2:  {2,4,5,12,20,17},
         3:  {6,21},
@@ -205,7 +207,7 @@ class UOEnv(gym.Env):
     
     def render(self):
         print(f"Current symbol: '{self.string[self.string_index]}'")
-        print(f"Config: <{self.agent_0_state}, {self.agent_1_belief}:{self.po[self.agent_1_belief]}, {self.agent_2_belief}:{self.po[self.agent_2_belief]}>, Current symbol: '{self.string[self.string_index]}'")
+        print(f"Config: <{self.agent_0_state}, {self.agent_1_belief}:{self.m_bottom[self.agent_1_belief]}, {self.agent_2_belief}:{self.m_bottom[self.agent_2_belief]}>, Current symbol: '{self.string[self.string_index]}'")
     
     def simulation_step(self, action):
         agent_id, communicate = action
@@ -273,7 +275,7 @@ class UOEnv(gym.Env):
         a = [" " for _ in range(22)]
         a[self.agent_0_state] = "#"
         
-        print(f"Config: <{self.agent_0_state}, {self.agent_1_belief}:{self.po[self.agent_1_belief]}, {self.agent_2_belief}:{self.po[self.agent_2_belief]}>, Current symbol: '{self.string[self.string_index]}', # comm: {self.communication_count}")
+        print(f"Config: <{self.agent_0_state}, {self.agent_1_belief}:{self.m_bottom[self.agent_1_belief]}, {self.agent_2_belief}:{self.m_bottom[self.agent_2_belief]}>, Current symbol: '{self.string[self.string_index]}', # comm: {self.communication_count}")
         
         
         block = "|"
