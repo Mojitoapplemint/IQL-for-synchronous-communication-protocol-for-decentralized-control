@@ -41,24 +41,24 @@ def q_main(env, epochs=10000, epsilon=0.1, gamma=0.1, alpha=0.1, print_process=F
             print(str(100*epoch/epochs)+"%","done" , end="\r")
         
         config, info = env.reset()
-        _ , agent_1_observation, agent_2_observation = config
+        _ , agent_1_belief, agent_2_belief = config
         
         curr_symbol=info['input_alphabet']
         
         if curr_symbol == 'a':
             agent_id = 1
-            state_num_1 = LOCAL_STATES_1[(agent_1_observation, curr_symbol)]
+            state_num_1 = LOCAL_STATES_1[(agent_1_belief, curr_symbol)]
             
             communicate_1 = get_action(epsilon, q_1, state_num_1)
             
             action = (agent_id, communicate_1)
             
             config, reward, _, _, info = env.step(action)
-            _ , agent_1_observation, agent_2_observation = config
+            _ , agent_1_belief, agent_2_belief = config
             
             curr_symbol=info["input_alphabet"]
             
-            state_num_2 = LOCAL_STATES_2[(agent_2_observation, curr_symbol)]
+            state_num_2 = LOCAL_STATES_2[(agent_2_belief, curr_symbol)]
             
             communicate_2 = get_action(epsilon, q_2, state_num_2)
             
@@ -70,18 +70,18 @@ def q_main(env, epochs=10000, epsilon=0.1, gamma=0.1, alpha=0.1, print_process=F
         
         elif curr_symbol == 'b':
             agent_id = 2
-            state_num_2 = LOCAL_STATES_2[(agent_2_observation, curr_symbol)] 
+            state_num_2 = LOCAL_STATES_2[(agent_2_belief, curr_symbol)] 
             
             communicate_2 = get_action(epsilon, q_2, state_num_2)
             
             action = (agent_id, communicate_2)
             
             config, reward, _, _, info = env.step(action)
-            _ , agent_1_observation, agent_2_observation = config
+            _ , agent_1_belief, agent_2_belief = config
             
             curr_symbol=info["input_alphabet"]
             
-            state_num_1 = LOCAL_STATES_1[(agent_1_observation, curr_symbol)]
+            state_num_1 = LOCAL_STATES_1[(agent_1_belief, curr_symbol)]
             
             communicate_1 = get_action(epsilon, q_1, state_num_1)
             
@@ -90,12 +90,12 @@ def q_main(env, epochs=10000, epsilon=0.1, gamma=0.1, alpha=0.1, print_process=F
             action = (agent_id, communicate_1)
             
         config, reward, _, _, info = env.step(action)
-        _ , agent_1_observation, agent_2_observation = config
+        _ , agent_1_belief, agent_2_belief = config
         
         next_curr_alphabet=info["input_alphabet"]
         
-        next_state_num_1 = LOCAL_STATES_1[(agent_1_observation, next_curr_alphabet)]
-        next_state_num_2 = LOCAL_STATES_2[(agent_2_observation, next_curr_alphabet)]
+        next_state_num_1 = LOCAL_STATES_1[(agent_1_belief, next_curr_alphabet)]
+        next_state_num_2 = LOCAL_STATES_2[(agent_2_belief, next_curr_alphabet)]
         
         # Q-learning update for both agents
         q_1[state_num_1, communicate_1] += alpha * (reward + gamma * np.max(q_1[next_state_num_1]) - q_1[state_num_1, communicate_1])

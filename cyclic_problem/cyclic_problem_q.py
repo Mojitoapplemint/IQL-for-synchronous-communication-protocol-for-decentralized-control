@@ -42,7 +42,7 @@ def q_training(env, q_1, q_2, epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1):
         
         curr_symbol=info['input_alphabet']
         
-        _, agent_1_observation, agent_2_observation = config
+        _, agent_1_belief, agent_2_belief = config
         
         agent_1_prev_row_num = -1
         agent_2_prev_row_num = -1
@@ -63,7 +63,7 @@ def q_training(env, q_1, q_2, epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1):
             if curr_symbol == "a":
                 
                 agent_id=1
-                agent_1_row_num = PHI[(agent_2_in_dead_state, agent_1_observation)]
+                agent_1_row_num = PHI[(agent_2_in_dead_state, agent_1_belief)]
                 
                 if agent_1_prev_row_num != -1 :
                     # Q-value update for agent 1
@@ -73,9 +73,9 @@ def q_training(env, q_1, q_2, epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1):
                 agent_1_communicate = get_action(q_1, agent_2_in_dead_state, agent_1_row_num, epsilon)
                 config, reward, terminated, truncated, info = env.step((agent_id, agent_1_communicate))
                 
-                _, agent_1_observation, agent_2_observation = config
+                _, agent_1_belief, agent_2_belief = config
                 
-                agent_2_in_dead_state = agent_2_observation == -1
+                agent_2_in_dead_state = agent_2_belief == -1
                     
                 reward_1 += reward
                 
@@ -85,7 +85,7 @@ def q_training(env, q_1, q_2, epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1):
                             
             if curr_symbol == "b":
                 agent_id=2
-                agent_2_row_num = PHI[(agent_1_in_dead_state, agent_2_observation)]
+                agent_2_row_num = PHI[(agent_1_in_dead_state, agent_2_belief)]
                 
                 if agent_2_prev_row_num != -1:
                     # Q-value update for agent 2
@@ -95,9 +95,9 @@ def q_training(env, q_1, q_2, epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1):
                 agent_2_communicate = get_action(q_2, agent_1_in_dead_state, agent_2_row_num, epsilon)
                 config, reward, terminated, truncated, info = env.step((agent_id, agent_2_communicate))
                 
-                _, agent_1_observation, agent_2_observation = config
+                _, agent_1_belief, agent_2_belief = config
                 
-                agent_1_in_dead_state = agent_1_observation == -1
+                agent_1_in_dead_state = agent_1_belief == -1
                 
                 reward_2 += reward
                 

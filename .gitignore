@@ -1,6 +1,3 @@
-even_more_complex_problem/*.csv
-even_more_complex_problem/*.csv
+problem_w_unobservable_events/*.csv
 cyclic_problem/*.csv
-cyclic_problem/*.csv
-benchmark_problem/*.csv
 benchmark_problem/*.csv

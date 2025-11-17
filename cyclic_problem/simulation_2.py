@@ -27,7 +27,7 @@ ROW_NUMS = {
 }
 
 fail_count = 0
-test_count = 10000
+test_count = 1000
 
 string_mode = "simulation" # options: "simulation", "half", "full"
 
@@ -102,13 +102,13 @@ print("\nCommunication Protocol for Agent 1:")
 for key, row_num in ROW_NUMS.items():
     if key[0]==False:
         action = np.argmax(q_1[row_num])
-        communication_decision = "does not communicate" if action==1 else "communicates"
+        communication_decision = "does not communicate" if action==0 else "communicates"
         print(f"If agent 1's belief state is {key[1]} and observes 'a', then Agent 1 {communication_decision}.")
 
 print("\nCommunication Protocol for Agent 2:")
 for key, row_num in ROW_NUMS.items():
     if key[0]==False:
         action = np.argmax(q_2[row_num])
-        communication_decision = "does not communicate" if action==1 else "communicates"
+        communication_decision = "does not communicate" if action==0 else "communicates"
         print(f"If agent 2's belief state is {key[1]} and observe 'b', then Agent 2 {communication_decision}.")
         
