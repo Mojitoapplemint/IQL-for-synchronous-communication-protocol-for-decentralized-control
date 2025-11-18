@@ -19,7 +19,7 @@ class StringGenerator:
         """
         
         # Choose one of the 5 alternatives randomly
-        choice = random.randint(1, 5)
+        choice = random.randint(1, 7)
         
         if choice == 1:
             # Pattern: axac
@@ -37,8 +37,12 @@ class StringGenerator:
         elif choice == 4:
             # Pattern: aaxc
             return "aaxc"
+
+        elif choice == 5:
+            # Pattern: aaaxac
+            return "aaaxac"
         
-        else:  # choice == 5
+        else:  # choice == 6
             # Pattern: a(xsa+ayta+aazra)(xsa+ayta+aazra)*axc
             
             # First required group

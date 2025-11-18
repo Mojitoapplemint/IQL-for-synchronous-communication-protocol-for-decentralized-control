@@ -181,9 +181,12 @@ def get_action(q_table, opponent_in_dead_state, row_num, epsilon):
         return  np.argmax(q_table[row_num])  # Exploit: best action from Q-table
         
 
-def q_training(env, q_1, q_2,epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1):
+def q_training(env, epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1, print_process=False):
+    q_1 = np.zeros((2*len(PHI_1), env.action_space.n))
+    q_2 = np.zeros((2*len(PHI_2), env.action_space.n))  
+    
     for epoch in range(epochs):
-        if (epoch%100==0):
+        if (print_process and epoch%100==0):
                 print(str(100*epoch/epochs)+"%","done" , end="\r")
             
         config, info = env.reset()
@@ -264,13 +267,11 @@ def q_training(env, q_1, q_2,epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1):
         q_1[agent_1_prev_row_num][agent_1_communicate] += alpha * (reward_1 + gamma * 0 - q_1[agent_1_prev_row_num][agent_1_communicate])
         q_2[agent_2_prev_row_num][agent_2_communicate] += alpha * (reward_2 + gamma * 0 - q_2[agent_2_prev_row_num][agent_2_communicate])
 
+    return q_1, q_2
 
-q_training_env = gym.make('UOEnv-v0', render_mode=None)
+q_training_env = gym.make('UOEnv-v0', render_mode=None, string_mode="training")
 
-q_1 = np.zeros((2*len(PHI_1), q_training_env.action_space.n))
-q_2 = np.zeros((2*len(PHI_2), q_training_env.action_space.n))
-
-q_training(q_training_env, q_1, q_2, epochs=1000000, alpha=0.01, gamma=0.5, epsilon=0.1)
+q_1, q_2 = q_training(q_training_env, epochs=100000, alpha=0.01, gamma=0.5, epsilon=0.1)
 
 
 q_1_df = pd.DataFrame(q_1, columns=["do not communcate", "communicate"])

@@ -34,8 +34,8 @@ def get_action(q_table, is_opponent_lost, row_num, epsilon):
 
 def q_training(env, epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1, print_process=False):
 
-    q_1 = np.zeros((len(PHI), q_training_env.action_space.n))
-    q_2 = np.zeros((len(PHI), q_training_env.action_space.n))
+    q_1 = np.zeros((len(PHI), env.action_space.n))
+    q_2 = np.zeros((len(PHI), env.action_space.n))
 
     for epoch in range(epochs):
         if (print_process and epoch%100==0):

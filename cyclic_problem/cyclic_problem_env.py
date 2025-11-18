@@ -146,7 +146,7 @@ class CylicEnv(gym.Env):
             terminated = True
             reward -= 100
         
-        elif self.string[self.string_index]== "$" and self.global_state == 5 and (self.agent_1_belief == 5 or self.agent_2_belief == 5):
+        if self.string[self.string_index]== "$" and self.global_state == 5 and (self.agent_1_belief == 5 or self.agent_2_belief == 5):
             terminated = True
             reward += 200
         

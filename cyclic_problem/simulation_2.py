@@ -39,14 +39,14 @@ for i in range(session_count):
     fail_count = 0
     test_count = 1000
 
-    string_mode = "training" # options: "simulation", ""
+    string_mode = "training"
 
     env = gym.make("CylicEnv-v0", render_mode = None, string_mode=string_mode)
     
     q_1, q_2 = q_training(env, epochs=10000, alpha=0.01, gamma=0.5, epsilon=0.1)
 
 
-    string_mode = "simulation" # options: "simulation", "half", "full"
+    string_mode = "simulation"
 
     env = gym.make("CylicEnv-v0", render_mode = None, string_mode=string_mode)
 

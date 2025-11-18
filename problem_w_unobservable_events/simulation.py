@@ -171,7 +171,7 @@ ROW_NUMS_2={
 
     
 
-env = gym.make('UOEnv-v0', render_mode="simulation")
+env = gym.make('UOEnv-v0', render_mode="human", string_mode="simulation")
 
 
 config, info = env.reset()

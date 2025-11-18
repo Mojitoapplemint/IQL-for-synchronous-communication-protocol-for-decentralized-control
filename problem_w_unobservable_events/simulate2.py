@@ -2,6 +2,31 @@ import numpy as np
 import gymnasium as gym
 import pandas as pd
 import uo_problem_env
+from uo_problem_q import q_training
+
+m_bottom={
+    1:  {1,3},
+    2:  {2,4,5,12,20,17},
+    3:  {6,21},
+    4:  {6,10},
+    5:  {2,4,8,13,18},
+    6:  {6},
+    7:  {7},
+    8:  {2,4,14},
+    9:  {9},
+    10: {10},
+    11: {11},
+    12: {2,4},
+    13: {2,4,8,13,18},
+    14: {14},
+    15: {15},
+    16: {16},
+    17: {8,13,18},
+    19: {19},
+    21: {21},
+    -1: {-1},
+}
+
 ROW_NUMS_1={
     (1, 'a'):0,
     (2, 'a'):1,
@@ -169,114 +194,103 @@ ROW_NUMS_2={
 }
 
 
-    
-
-env = gym.make('UOEnv-v0', render_mode=None)
 
 
+fail_rate_count={}
+over_comm_rate_count={}
+success_dict = {}
+session_count = 100
 
-q_1 = pd.read_csv("./problem_w_unobservable_events/demo_q1_table.csv")
-q_2 = pd.read_csv("./problem_w_unobservable_events/demo_q2_table.csv")
-q_1 = q_1.drop(q_1.columns[[0]], axis=1).to_numpy()
-q_2 = q_2.drop(q_2.columns[[0]], axis=1).to_numpy()
+for i in range(session_count):
+    print(str(100*i/session_count)+"%","done" , end="\r")
+    env = gym.make('UOEnv-v0', render_mode=None, string_mode="training")
+    q_1, q_2 = q_training(env, epochs=50000, alpha=0.01, gamma=0.5, epsilon=0.1)
 
-result_dict = {}
-fail_string = {}
-success_string = {}
-test_count = 100000
+    env = gym.make('UOEnv-v0', render_mode=None, string_mode="simulation")
 
-fail_count = 0
-success_count = 0
-over_comm_count = 0
+    fail_count = 0
+    over_comm_count = 0
+    test_count = 100
+    for _ in range (test_count):
 
-for i in range (test_count):
-    if (i%100==0):
-        print(str(100*i/test_count)+"%","done" , end="\r")
-    terminated = False
-    truncated = False
+        terminated = False
+        simulation_result = False
 
-    config, info = env.reset()
+        config, info = env.reset()
 
-    curr_symbol=info['input_alphabet']
+        curr_symbol=info['input_alphabet']
 
-    global_state, agent_1_observation, agent_2_observation = config
+        global_state, agent_1_belief, agent_2_belief = config
 
-    agent_1_in_dead_state = False
-    agent_2_in_dead_state = False
+        agent_1_in_dead_state = False
+        agent_2_in_dead_state = False
 
-    while not (terminated or truncated):
-        if curr_symbol in ['a', 'c']:
-            
-            agent_id=1
-            agent_1_row_num = len(ROW_NUMS_1)+ROW_NUMS_1[(agent_1_observation, curr_symbol)] if agent_2_in_dead_state else ROW_NUMS_1[(agent_1_observation, curr_symbol)]
-
-            
-            if agent_2_in_dead_state:
-                agent_1_communicate = 0
-            else:
-                agent_1_communicate = np.argmax(q_1[agent_1_row_num])
+        while not (terminated):
+            if curr_symbol in ['a', 'c']:
                 
-            config, _, terminated, truncated, info = env.step((agent_id, agent_1_communicate))
-            
-            global_state, agent_1_observation, agent_2_observation = config
-            
-            agent_2_in_dead_state = agent_2_observation == -1
+                agent_id=1
+                agent_1_row_num = len(ROW_NUMS_1)+ROW_NUMS_1[(agent_1_belief, curr_symbol)] if agent_2_in_dead_state else ROW_NUMS_1[(agent_1_belief, curr_symbol)]
 
-            
-            curr_symbol=info['input_alphabet']
-                        
-        if curr_symbol in ['x', 'y', 'z', 's', 't', 'r']:
-            agent_id=2
-            agent_2_row_num = len(ROW_NUMS_2)+ROW_NUMS_2[(agent_2_observation, curr_symbol)] if agent_1_in_dead_state else ROW_NUMS_2[(agent_2_observation, curr_symbol)]
+                
+                if agent_2_in_dead_state:
+                    agent_1_communicate = 0
+                else:
+                    agent_1_communicate = np.argmax(q_1[agent_1_row_num])
+                    
+                config, _, terminated, simulation_result, info = env.step((agent_id, agent_1_communicate))
+                
+                global_state, agent_1_belief, agent_2_belief = config
+                
+                agent_2_in_dead_state = agent_2_belief == -1
 
-            if agent_1_in_dead_state:
-                agent_2_communicate = 0
-            else:        
-                agent_2_communicate = np.argmax(q_2[agent_2_row_num])
+                
+                curr_symbol=info['input_alphabet']
+                            
+            if curr_symbol in ['x', 'y', 'z', 's', 't', 'r']:
+                agent_id=2
+                agent_2_row_num = len(ROW_NUMS_2)+ROW_NUMS_2[(agent_2_belief, curr_symbol)] if agent_1_in_dead_state else ROW_NUMS_2[(agent_2_belief, curr_symbol)]
 
-            config, _, terminated, _, info = env.step((agent_id, agent_2_communicate))
-            
-            global_state, agent_1_observation, agent_2_observation = config
-            
-            agent_1_in_dead_state = agent_1_observation == -1
-            
-            curr_symbol=info['input_alphabet']
-    
-    if global_state == agent_1_observation or global_state == agent_2_observation:
-        success_count += 1
-    elif global_state == agent_1_observation and global_state == agent_2_observation:
-        over_comm_count += 1
+                if agent_1_in_dead_state:
+                    agent_2_communicate = 0
+                else:        
+                    agent_2_communicate = np.argmax(q_2[agent_2_row_num])
+
+                config, _, terminated, simulation_result, info = env.step((agent_id, agent_2_communicate))
+                
+                global_state, agent_1_belief, agent_2_belief = config
+                
+                agent_1_in_dead_state = agent_1_belief == -1
+                
+                curr_symbol=info['input_alphabet']
+        
+
+        if (global_state != agent_1_belief) and (global_state != agent_2_belief):
+            fail_count += 1
+        if global_state == agent_1_belief and global_state == agent_2_belief:
+            over_comm_count += 1
+
+    fail_rate = np.round(fail_count/test_count*100, 2)
+    if fail_rate not in fail_rate_count:
+        fail_rate_count[fail_rate] = 1
     else:
-        fail_count += 1
+        fail_rate_count[fail_rate] += 1
     
-    if (global_state != agent_1_observation) and (global_state != agent_2_observation):
-        config = (global_state, agent_1_observation, agent_2_observation)
+    over_comm_rate = np.round(over_comm_count/test_count*100, 2)
+    if over_comm_rate not in over_comm_rate_count:
+        over_comm_rate_count[over_comm_rate] = 1
+    else:
+        over_comm_rate_count[over_comm_rate] += 1
         
-        if result_dict.get(config) is None:
-            result_dict[config] = 1
-        result_dict[config] = result_dict.get(config) + 1
-        
-    # elif (global_state==11) and (global_state == agent_1_observation) or (global_state == agent_2_observation):
-    #     string = info["string"]
-    #     if success_string.get(string) is None:
-    #         success_string[string] = 1
-    #     success_string[string] = success_string.get(string) + 1
-    #     config = (global_state, agent_1_observation, agent_2_observation)
-    #     if result_dict.get(config) is None:
-    #         result_dict[config] = 1
-    #     result_dict[config] = result_dict.get(config) + 1
+        # config = (global_state, agent_1_belief, agent_2_belief)
+            
+        # if result_dict.get(config) is None:
+        #     result_dict[config] = 1
+        # else:
+        #     result_dict[config] = result_dict.get(config) + 1
 
-print("\nResult by config:")
-for key in result_dict:
-    print(f"config {key}: {result_dict[key]}")
+# Save results to CSV
+fail_rate_df = pd.DataFrame(list(fail_rate_count.items()), columns=['Fail Rate (%)', 'Count'])
+fail_rate_df.to_csv("./problem_w_unobservable_events/simulation_2_results.csv", index=False)
 
-# print("\nFailed strings:")
-# for key in fail_string:
-#     print(f"string {key}: {fail_string[key]}")
-
-# print("\nSuccessful strings:")
-# for key in success_string:
-#     print(f"string {key}: {success_string[key]}")
-
-print("\nTotal failed counts:", fail_count)
-print("Total successful counts:", success_count)
+over_comm_rate_df = pd.DataFrame(list(over_comm_rate_count.items()), columns=['Over-Communication Rate (%)', 'Count'])
+over_comm_rate_df.to_csv("./problem_w_unobservable_events/simulation_2_over_communication_results.csv", index=False)

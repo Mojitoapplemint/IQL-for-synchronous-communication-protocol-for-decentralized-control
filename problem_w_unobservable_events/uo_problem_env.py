@@ -10,7 +10,7 @@ gym.register(
 )
 
 class UOEnv(gym.Env):
-    COMMUNICATE_COST = 10
+    COMMUNICATE_COST = 15
     
     # symbol replacement
     #    a1 -> a,   c1 -> c
@@ -54,7 +54,7 @@ class UOEnv(gym.Env):
         10: {10},
         11: {11},
         12: {2,4},
-        13: {2,4,8,13,18},
+        13: {5,12,17,20},
         14: {14},
         15: {15},
         16: {16},
@@ -72,7 +72,7 @@ class UOEnv(gym.Env):
         5:{'a':8, 'y':19, 'x':4},
         6:{'a':7},
         7:{'c':9},
-        8:{'a':12, 'z':15},
+        8:{'a':12, 'z':15, 'x':6},
         10:{'c':11},
         12:{'a':12, 'x':6},
         13:{'a':17, 'x':21},
@@ -92,7 +92,7 @@ class UOEnv(gym.Env):
         5:{'a':8, 'y':19, 'x':4,   'c':-1, 'z':-1, 's':-1, 't':-1, 'r':-1},
         6:{'a':7,                  'c':-1, 'x':-1, 'y':-1, 'z':-1, 's':-1, 't':-1, 'r':-1},
         7:{'c':9,                  'a':-1, 'x':-1, 'y':-1, 'z':-1, 's':-1, 't':-1, 'r':-1},
-        8:{'a':12, 'z':15,         'c':-1, 'x':-1, 'y':-1, 's':-1, 't':-1, 'r':-1},
+        8:{'a':12, 'z':15,'x':6,   'c':-1, 'y':-1, 's':-1, 't':-1, 'r':-1},
         10:{'c':11,                'a':-1, 'x':-1, 'y':-1, 'z':-1, 's':-1, 't':-1, 'r':-1},
         12:{'a':12, 'x':6,         'c':-1, 'y':-1, 'z':-1, 's':-1, 't':-1, 'r':-1},
         13:{'a':17, 'x':21,        'c':-1, 'y':-1, 'z':-1, 's':-1, 't':-1, 'r':-1},
@@ -105,14 +105,16 @@ class UOEnv(gym.Env):
         -1:{'a':-1, 'c':-1, 'x':-1, 'y':-1, 'z':-1, 's':-1, 't':-1, 'r':-1}
     }
     
-    metadata = {'render_modes': ['human', 'simulation']}
+    metadata = {'render_modes': ['human'], 'string_modes': ['training', 'simulation']}
     
-    def __init__(self, render_mode=None, max_star=5):
+    def __init__(self, render_mode=None, string_mode="training", max_star=5):
         self.action_space = gym.spaces.Discrete(2)  # Actions: 0: communicate, 1:don't communicate
         self.observation_space = gym.spaces.Box(low=-1, high=21, shape=(3,), dtype=np.int32)
         
         assert render_mode is None or render_mode in self.metadata['render_modes']
+        assert string_mode is None or string_mode in self.metadata['string_modes']
         self.render_mode = render_mode
+        self.string_mode = string_mode
         
         self.string_generator = StringGenerator(max_star=max_star)
         
@@ -129,17 +131,17 @@ class UOEnv(gym.Env):
         
         self.communication_count = 0
         
-        if self.render_mode == "simulation":
+        if self.string_mode == "simulation":
             self.string=self.string_generator.generate_simulation_str()+"$"
-            # self.string="dagaazradxsafaytaaxc$"
-            print(f"\nSimulation String: {self.string}")
-            
-            self.simulate()
+            if self.render_mode == 'human':
+                print(f"\nSimulation String: {self.string}")
+                self.simulate()
             if self.string[self.string_index] == 'd':
                 self.agent_0_state = self.simulation_transitions[self.agent_0_state].get('d')
                 self.string_index += 1
-            self.simulate()
-        else:
+            if self.render_mode == 'human':
+                self.simulate()
+        elif self.string_mode == "training":
             self.string=self.string_generator.generate_training_str()+"$" 
             # self.string = "aaazraaazraaazraaazraaxc$"       
             if self.render_mode == 'human':
@@ -155,7 +157,7 @@ class UOEnv(gym.Env):
         return np.array(config, dtype=np.int32), info
     
     def step(self, action):
-        if self.render_mode == "simulation":
+        if self.string_mode == "simulation":
             return self.simulation_step(action)
         
         reward = 0
@@ -187,18 +189,53 @@ class UOEnv(gym.Env):
         curr_symbol=self.string[self.string_index]
         
         # reward assignment
-        if self.agent_0_state ==11 and (self.agent_1_belief ==11 or self.agent_2_belief ==11):
-            reward += 200
-            terminated = True
-        elif self.agent_0_state ==9 and (self.agent_1_belief ==9 or self.agent_2_belief ==9):
-            reward += 200
-            terminated = True
-        elif self.string[self.string_index]=="$":
+        if (self.agent_1_belief != self.agent_0_state) and (self.agent_2_belief != self.agent_0_state):
             reward -= 100
+        
+        if self.agent_1_belief == -1 and self.agent_2_belief == -1:
+            reward -=100
+            terminated = True
+            
+        if self.agent_0_state == 11 and not(self.agent_1_belief == 11 or self.agent_2_belief == 11):
+            # Penalized configuration condition 1-1
+            reward -=100
+            terminated = True
+        if self.agent_0_state == 9 and not(self.agent_1_belief == 9 or self.agent_2_belief == 9):
+            # Penalized configuration condition 1-2
+            reward -=100
+            terminated = True
+        if self.agent_0_state != 11 and self.agent_1_belief == 11 and self.agent_2_belief == 11:
+            # Penalized configuration condition 2-1
+            reward -=100
+            terminated = True
+        if self.agent_0_state != 9 and self.agent_1_belief == 9 and self.agent_2_belief == 9:
+            # Penalized configuration condition 2-2
+            reward -=100
             terminated = True
         
-        if (self.agent_1_belief != self.agent_0_state) and (self.agent_2_belief != self.agent_0_state):
-            reward -= 50
+        
+        elif self.agent_0_state == 11 and (self.agent_1_belief ==11 or self.agent_2_belief==11):
+            terminated = True
+            reward += 200
+        
+        elif self.agent_0_state == 9 and (self.agent_1_belief ==9 or self.agent_2_belief==9):
+            terminated = True
+            reward += 200
+        
+
+
+        # if self.agent_0_state ==11 and (self.agent_1_belief ==11 or self.agent_2_belief ==11):
+        #     reward += 200
+        #     terminated = True
+        # elif self.agent_0_state ==9 and (self.agent_1_belief ==9 or self.agent_2_belief ==9):
+        #     reward += 200
+        #     terminated = True
+        # elif self.string[self.string_index]=="$":
+        #     reward -= 100
+        #     terminated = True
+        
+        # if (self.agent_1_belief != self.agent_0_state) and (self.agent_2_belief != self.agent_0_state):
+        #     reward -= 50
         
         
         config = (self.agent_0_state, self.agent_1_belief, self.agent_2_belief)
@@ -207,6 +244,9 @@ class UOEnv(gym.Env):
     
     def render(self):
         print(f"Current symbol: '{self.string[self.string_index]}'")
+        # print(self.agent_0_state, self.m_bottom[self.agent_0_state])
+        # print(self.agent_1_belief, self.agent_2_belief)
+        # print(self.m_bottom[self.agent_1_belief], self.m_bottom[self.agent_2_belief])
         print(f"Config: <{self.agent_0_state}:{self.m_bottom[self.agent_0_state]}, {self.agent_1_belief}:{self.m_bottom[self.agent_1_belief]}, {self.agent_2_belief}:{self.m_bottom[self.agent_2_belief]}>")
     
     def simulation_step(self, action):
@@ -220,9 +260,10 @@ class UOEnv(gym.Env):
             if self.agent_0_state not in [7,10]:
                 raise ValueError("Disable action can only be taken at state 7 or 10 in simulation.")
             
-            # Control Policy: If in state 7, disable 'c'
+            # Control Policy: If in state 7:{7}, disable 'c'
             agent_1_disable_c = self.agent_1_belief == 7
             agent_2_disable_c = self.agent_2_belief == 7
+            
             
             if not (agent_1_disable_c or agent_2_disable_c):
                 self.agent_0_state = self.simulation_transitions[self.agent_0_state].get(curr_symbol)
@@ -231,7 +272,8 @@ class UOEnv(gym.Env):
                     self.communication_count+=1
                     self.agent_2_belief = self.bottom_trantitions[self.agent_2_belief].get(curr_symbol)
             
-            self.simulate(True, agent_1_disable_c, agent_2_disable_c)
+            if self.render_mode == 'human':
+                self.simulate(True, agent_1_disable_c, agent_2_disable_c)
         else:
             self.agent_0_state = self.simulation_transitions[self.agent_0_state].get(curr_symbol)
             if agent_id==1:
@@ -247,10 +289,11 @@ class UOEnv(gym.Env):
             else:
                 raise ValueError("Invalid agent_id. Must be 1 or 2.")
             
-            if communicate == 1:
+            if self.render_mode == 'human' and communicate == 1:
                 print(f"\nAgent {agent_id} communicated on '{curr_symbol}'")
 
-            self.simulate()
+            if self.render_mode == 'human':
+                self.simulate()
         
         self.string_index += 1
         
@@ -258,7 +301,8 @@ class UOEnv(gym.Env):
         
         if curr_symbol in ['d','g', 'f']:
             self.agent_0_state = self.simulation_transitions[self.agent_0_state].get(curr_symbol)
-            self.simulate()
+            if self.render_mode == 'human':
+                self.simulate()
             
             self.string_index += 1
             curr_symbol=self.string[self.string_index]
@@ -269,6 +313,7 @@ class UOEnv(gym.Env):
         
         config = (self.agent_0_state, self.agent_1_belief, self.agent_2_belief)
         info = {"input_alphabet":self.string[self.string_index], "string":self.string}
+        
         return np.array(config, dtype=np.int32), -1, terminated, False, info
     
     def simulate(self, seven_or_ten=False, agent_1_disable_c=None, agent_2_disable_c=None):
