@@ -53,13 +53,13 @@ q_2_protocols = {
     13:0
 }
 
-# df = pd.read_csv("./cyclic_problem/simulation_2_results.csv")[1:]
+df = pd.read_csv("./cyclic_problem/simulation_2_results.csv")[1:]
 
-# plt.bar(df['Fail Rate (%)'], df['Count'])
-# plt.xlabel('Fail Rate (%)')
-# plt.ylabel('Count')
-# plt.title('Fail Rate Distribution over 10000 Simulations (excluding 0% fail rate)')
-# plt.show()
+plt.bar(df['Fail Rate (%)'], df['Count'])
+plt.xlabel('Fail Rate (%)')
+plt.ylabel('Count')
+plt.title('Fail Rate Distribution over 10000 Simulations (excluding 0% fail rate)')
+plt.show()
 
 # Analyze successful protocols
 success_df = pd.read_csv("./cyclic_problem/simulation_2_successful_protocols.csv")
