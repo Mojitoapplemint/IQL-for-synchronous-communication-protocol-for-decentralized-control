@@ -16,7 +16,7 @@ class CylicEnv(gym.Env):
     # symbol replacement
     #   a1 -> a  ,  e1 -> x
     #   a2 -> b  ,  e2 -> y
-    agent_0_transitions={
+    global_transitions={
         0:{'a':1,  'b':2,  'x':0,  'y':0},
         1:{'b':3,  'x':2,  'y':1},
         2:{'a':4},
@@ -56,7 +56,7 @@ class CylicEnv(gym.Env):
             self.string=self.string_generator.generate_simulation_str()+"$"
         self.string_index=0
         self.communication_count=0
-        self.agent_0_state = 0
+        self.global_state = 0
         self.agent_1_belief = 0
         self.agent_2_belief = 0
         
@@ -71,7 +71,7 @@ class CylicEnv(gym.Env):
         curr_symbol=self.string[self.string_index]
         
         while curr_symbol in ['x','y']:
-            self.agent_0_state = self.agent_0_transitions[self.agent_0_state].get(curr_symbol)
+            self.global_state = self.global_transitions[self.global_state].get(curr_symbol)
             self.agent_1_belief = self.bottom_transitions[self.agent_1_belief].get(curr_symbol)
             self.agent_2_belief = self.bottom_transitions[self.agent_2_belief].get(curr_symbol)
             self.string_index += 1
@@ -83,7 +83,7 @@ class CylicEnv(gym.Env):
                     self.render()
 
         
-        config=(self.agent_0_state, self.agent_1_belief, self.agent_2_belief)
+        config=(self.global_state, self.agent_1_belief, self.agent_2_belief)
         
         info={"input_alphabet":self.string[self.string_index], "string":self.string}
         return np.array(config, dtype=np.int32), info
@@ -100,7 +100,7 @@ class CylicEnv(gym.Env):
         
         curr_symbol=self.string[self.string_index]
         
-        self.agent_0_state = self.agent_0_transitions[self.agent_0_state].get(curr_symbol)
+        self.global_state = self.global_transitions[self.global_state].get(curr_symbol)
         if agent_id==1:
             self.agent_1_belief = self.bottom_transitions[self.agent_1_belief].get(curr_symbol)
             if communicate == 1:
@@ -125,7 +125,7 @@ class CylicEnv(gym.Env):
         curr_symbol=self.string[self.string_index]
         
         while curr_symbol in ['x','y']:
-            self.agent_0_state = self.agent_0_transitions[self.agent_0_state].get(curr_symbol)
+            self.global_state = self.global_transitions[self.global_state].get(curr_symbol)
             self.agent_1_belief = self.bottom_transitions[self.agent_1_belief].get(curr_symbol)
             self.agent_2_belief = self.bottom_transitions[self.agent_2_belief].get(curr_symbol)
             if self.render_mode == 'human':
@@ -137,15 +137,15 @@ class CylicEnv(gym.Env):
         if self.agent_1_belief == -1 and self.agent_2_belief == -1:
             terminated = True
             reward -= 100
-        elif self.agent_0_state == 5 and not(self.agent_1_belief == 5 or self.agent_2_belief == 5):
+        elif self.global_state == 5 and not(self.agent_1_belief == 5 or self.agent_2_belief == 5):
             reward -= 100
             terminated = True
         
-        elif self.string[self.string_index]== "$" and self.agent_0_state == 5 and (self.agent_1_belief == 5 or self.agent_2_belief == 5):
+        elif self.string[self.string_index]== "$" and self.global_state == 5 and (self.agent_1_belief == 5 or self.agent_2_belief == 5):
             terminated = True
             reward += 200
         
-        config = (self.agent_0_state, self.agent_1_belief, self.agent_2_belief)
+        config = (self.global_state, self.agent_1_belief, self.agent_2_belief)
         
         info={"input_alphabet":self.string[self.string_index]}
         
@@ -153,7 +153,7 @@ class CylicEnv(gym.Env):
     
     def render(self):
         print(f"Current symbol: '{self.string[self.string_index]}'")
-        print(f"Config: <{self.agent_0_state}, {self.agent_1_belief}, {self.agent_2_belief}>")
+        print(f"Config: <{self.global_state}, {self.agent_1_belief}, {self.agent_2_belief}>")
     
     def simultaion_step(self, action):
         agent_id, communicate = action
@@ -161,7 +161,7 @@ class CylicEnv(gym.Env):
         simulation_result = False # whether the simulation ends in success or failure
         
         curr_symbol=self.string[self.string_index]
-        self.agent_0_state = self.agent_0_transitions[self.agent_0_state].get(curr_symbol)
+        self.global_state = self.global_transitions[self.global_state].get(curr_symbol)
         if agent_id==1:
             self.agent_1_belief = self.bottom_transitions[self.agent_1_belief].get(curr_symbol)
             if communicate == 1:
@@ -185,7 +185,7 @@ class CylicEnv(gym.Env):
         
         if self.agent_1_belief == -1 and self.agent_2_belief == -1:
             terminated=True
-            config = (self.agent_0_state, self.agent_1_belief, self.agent_2_belief)
+            config = (self.global_state, self.agent_1_belief, self.agent_2_belief)
         
             info={"input_alphabet":self.string[self.string_index]}
         
@@ -193,7 +193,7 @@ class CylicEnv(gym.Env):
         
         while curr_symbol in ['x','y']:
             if curr_symbol == 'y':
-                self.agent_0_state = self.agent_0_transitions[self.agent_0_state].get(curr_symbol)
+                self.global_state = self.global_transitions[self.global_state].get(curr_symbol)
                 self.agent_1_belief = self.bottom_transitions[self.agent_1_belief].get(curr_symbol)
                 self.agent_2_belief = self.bottom_transitions[self.agent_2_belief].get(curr_symbol)
                 self.string_index += 1
@@ -201,7 +201,7 @@ class CylicEnv(gym.Env):
                 if self.render_mode == 'human':
                     self.simulate()
             else:
-                if self.agent_0_state == 4:
+                if self.global_state == 4:
                     agent_1_disable_x = (self.agent_1_belief == 4)
                     agent_2_disable_x = (self.agent_2_belief == 4)     
                     
@@ -212,7 +212,7 @@ class CylicEnv(gym.Env):
                             self.simulate(agent_1_disable_x, agent_2_disable_x)
                     
                     else:
-                        self.agent_0_state = self.agent_0_transitions[self.agent_0_state].get(curr_symbol)
+                        self.global_state = self.global_transitions[self.global_state].get(curr_symbol)
                         self.agent_1_belief = self.bottom_transitions[self.agent_1_belief].get(curr_symbol)
                         self.agent_2_belief = self.bottom_transitions[self.agent_2_belief].get(curr_symbol)
                         if self.render_mode == 'human':
@@ -221,7 +221,7 @@ class CylicEnv(gym.Env):
                         terminated=True
                         break
                 else:
-                    self.agent_0_state = self.agent_0_transitions[self.agent_0_state].get(curr_symbol)
+                    self.global_state = self.global_transitions[self.global_state].get(curr_symbol)
                     self.agent_1_belief = self.bottom_transitions[self.agent_1_belief].get(curr_symbol)
                     self.agent_2_belief = self.bottom_transitions[self.agent_2_belief].get(curr_symbol)
                     self.string_index += 1
@@ -230,14 +230,14 @@ class CylicEnv(gym.Env):
                         self.simulate()
 
         
-        if self.string[self.string_index]=="$" and self.agent_0_state == 4:
+        if self.string[self.string_index]=="$" and self.global_state == 4:
             # condition for simulation where agent successfully disable x at state 4
             terminated = True
             simulation_result = True
         elif self.string[self.string_index]=="$":
             terminated = True
         
-        config = (self.agent_0_state, self.agent_1_belief, self.agent_2_belief)
+        config = (self.global_state, self.agent_1_belief, self.agent_2_belief)
         
         info={"input_alphabet":self.string[self.string_index]}
         
@@ -248,11 +248,11 @@ class CylicEnv(gym.Env):
     def simulate(self, agent_1_disable_x=False, agent_2_disable_x=False):
         a = [" ", " ", " ", " ", " "," "]
 
-        a[self.agent_0_state] = "#"
+        a[self.global_state] = "#"
 
         block = "X" if (agent_1_disable_x or agent_2_disable_x) else "-"
 
-        print(f"Config: <{self.agent_0_state}, {self.agent_1_belief}, {self.agent_2_belief}>, Current symbol: '{self.string[self.string_index]}', # comm: {self.communication_count}")
+        print(f"Config: <{self.global_state}, {self.agent_1_belief}, {self.agent_2_belief}>, Current symbol: '{self.string[self.string_index]}', # comm: {self.communication_count}")
 
         if agent_1_disable_x:
             print("Agent 1 is disabled 'c' at state:" , self.agent_1_belief)

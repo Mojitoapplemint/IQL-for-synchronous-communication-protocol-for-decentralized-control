@@ -47,21 +47,21 @@ class UOEnv(gym.Env):
         3:  {6,21},
         4:  {6,10},
         5:  {2,4,8,13,18},
-        6:  6,
-        7:  7,
+        6:  {6},
+        7:  {7},
         8:  {2,4,14},
-        9:  9,
-        10: 10,
-        11: 11,
+        9:  {9},
+        10: {10},
+        11: {11},
         12: {2,4},
         13: {2,4,8,13,18},
-        14: 14,
-        15: 15,
-        16: 16,
+        14: {14},
+        15: {15},
+        16: {16},
         17: {8,13,18},
-        19: 19,
-        21: 21,
-        -1: -1,
+        19: {19},
+        21: {21},
+        -1: {-1},
     }
     
     agent_0_transitions={
@@ -207,9 +207,10 @@ class UOEnv(gym.Env):
     
     def render(self):
         print(f"Current symbol: '{self.string[self.string_index]}'")
-        print(f"Config: <{self.agent_0_state}, {self.agent_1_belief}:{self.m_bottom[self.agent_1_belief]}, {self.agent_2_belief}:{self.m_bottom[self.agent_2_belief]}>, Current symbol: '{self.string[self.string_index]}'")
+        print(f"Config: <{self.agent_0_state}:{self.m_bottom[self.agent_0_state]}, {self.agent_1_belief}:{self.m_bottom[self.agent_1_belief]}, {self.agent_2_belief}:{self.m_bottom[self.agent_2_belief]}>")
     
     def simulation_step(self, action):
+        # Note: In simulation mode, we still use variable "agent_0_state", but this refers to the actual global state.
         agent_id, communicate = action
         terminated = False
         
@@ -271,11 +272,12 @@ class UOEnv(gym.Env):
         return np.array(config, dtype=np.int32), -1, terminated, False, info
     
     def simulate(self, seven_or_ten=False, agent_1_disable_c=None, agent_2_disable_c=None):
+        # Note: In simulation mode, we still use variable "agent_0_state", but this refers to the actual global state.
         
         a = [" " for _ in range(22)]
         a[self.agent_0_state] = "#"
         
-        print(f"Config: <{self.agent_0_state}, {self.agent_1_belief}:{self.m_bottom[self.agent_1_belief]}, {self.agent_2_belief}:{self.m_bottom[self.agent_2_belief]}>, Current symbol: '{self.string[self.string_index]}', # comm: {self.communication_count}")
+        print(f"global state: {self.agent_0_state},\n agent 1's belief: {self.agent_1_belief}:{self.m_bottom[self.agent_1_belief]},\n agent 2's belief: {self.agent_2_belief}:{self.m_bottom[self.agent_2_belief]}>,\n Current symbol: '{self.string[self.string_index]}', # comm: {self.communication_count}")
         
         
         block = "|"

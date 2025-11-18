@@ -3,6 +3,7 @@ import gymnasium as gym
 import pandas as pd
 import random
 import cyclic_problem_env
+from cyclic_problem_q import q_training
 
 q_1 = pd.read_csv("./cyclic_problem/demo_q1_table.csv")
 q_2 = pd.read_csv("./cyclic_problem/demo_q2_table.csv")
@@ -26,89 +27,133 @@ ROW_NUMS = {
     (True, -1):13,
 }
 
-fail_count = 0
-test_count = 10000
+fail_rate_count={}
 
-string_mode = "simulation" # options: "simulation", "half", "full"
+success_dict = {}
 
-env = gym.make("CylicEnv-v0", render_mode = None, string_mode=string_mode)
+session_count = 100
 
-for i in range (test_count):
-    # print(i)
-    if (i%100==0):
-        print(str(100*i/test_count)+"%","done" , end="\r")
-
-    terminated = False
-    simulation_result = False
-
-    config, info = env.reset()
-
-    global_state, agent_1_observation, agent_2_observation = config
-
-    curr_symbol=info['input_alphabet']
+for i in range(session_count):
+    print(str(100*i/session_count)+"%","done" , end="\r")
     
-    string = info['string']
+    fail_count = 0
+    test_count = 100
 
-    agent_1_in_dead_state = False
-    agent_2_in_dead_state = False
+    string_mode = "full" # options: "simulation", "half", "full"
 
-    while not(terminated):
-        if curr_symbol == "a":
-            
-            agent_id=1
-            agent_1_row_num = ROW_NUMS[(agent_2_in_dead_state, agent_1_observation)]
-            
-            if agent_2_in_dead_state:
-                agent_1_communicate = 0
-            else:
-                agent_1_communicate = np.argmax(q_1[agent_1_row_num])
-            
-            config, reward, terminated, simulation_result, info = env.step((agent_id, agent_1_communicate))
-            
-            global_state, agent_1_observation, agent_2_observation = config
-            
-            agent_2_in_dead_state = agent_2_observation == -1
-            
-            curr_symbol=info['input_alphabet']
-                        
-        if curr_symbol == "b":
-            agent_id=2
-            agent_2_row_num = ROW_NUMS[(agent_1_in_dead_state, agent_2_observation)]
-            
-            if agent_1_in_dead_state:
-                agent_2_communicate = 0
-            else:        
-                agent_2_communicate = np.argmax(q_2[agent_2_row_num])
-            config, reward, terminated, simulation_result, info = env.step((agent_id, agent_2_communicate))
-            
-            global_state, agent_1_observation, agent_2_observation = config
-            
-            agent_1_in_dead_state = agent_1_observation == -1
-            
-            curr_symbol=info['input_alphabet']
+    env = gym.make("CylicEnv-v0", render_mode = None, string_mode=string_mode)
     
-    if string_mode=="simulation":
-        if not simulation_result:
-            fail_count += 1
+    q_1, q_2 = q_training(env, epochs=10000, alpha=0.01, gamma=0.5, epsilon=0.1)
+
+
+    string_mode = "simulation" # options: "simulation", "half", "full"
+
+    env = gym.make("CylicEnv-v0", render_mode = None, string_mode=string_mode)
+
+    for i in range (test_count):
+        # print(i)
+
+        terminated = False
+        simulation_result = False
+
+        config, info = env.reset()
+
+        global_state, agent_1_observation, agent_2_observation = config
+
+        curr_symbol=info['input_alphabet']
+        
+        string = info['string']
+
+        agent_1_in_dead_state = False
+        agent_2_in_dead_state = False
+
+        while not(terminated):
+            if curr_symbol == "a":
+                
+                agent_id=1
+                agent_1_row_num = ROW_NUMS[(agent_2_in_dead_state, agent_1_observation)]
+                
+                if agent_2_in_dead_state:
+                    agent_1_communicate = 0
+                else:
+                    agent_1_communicate = np.argmax(q_1[agent_1_row_num])
+                
+                config, reward, terminated, simulation_result, info = env.step((agent_id, agent_1_communicate))
+                
+                global_state, agent_1_observation, agent_2_observation = config
+                
+                agent_2_in_dead_state = agent_2_observation == -1
+                
+                curr_symbol=info['input_alphabet']
+                            
+            if curr_symbol == "b":
+                agent_id=2
+                agent_2_row_num = ROW_NUMS[(agent_1_in_dead_state, agent_2_observation)]
+                
+                if agent_1_in_dead_state:
+                    agent_2_communicate = 0
+                else:        
+                    agent_2_communicate = np.argmax(q_2[agent_2_row_num])
+                config, reward, terminated, simulation_result, info = env.step((agent_id, agent_2_communicate))
+                
+                global_state, agent_1_observation, agent_2_observation = config
+                
+                agent_1_in_dead_state = agent_1_observation == -1
+                
+                curr_symbol=info['input_alphabet']
+        
+        if string_mode=="simulation":
+            if not simulation_result:
+                fail_count += 1
+        else:
+            if global_state != agent_1_observation and global_state != agent_2_observation:
+                fail_count += 1
+        
+    fail_rate = np.round(fail_count/test_count*100, 2)
+    
+    if fail_rate==0:
+        q_1_comm_protocol = [0 for _ in range (13)]
+        q_2_comm_protocol = [0 for _ in range (13)]
+        for i in range(13):
+            q_1_comm_protocol[i] = np.argmax(q_1[i])
+            q_2_comm_protocol[i] = np.argmax(q_2[i])
+        
+        protocol_key = (tuple(q_1_comm_protocol), tuple(q_2_comm_protocol))
+        if protocol_key in success_dict:
+            success_dict[protocol_key] += 1
+        else:
+            success_dict[protocol_key] = 1
+    
+    if fail_rate in fail_rate_count:
+        fail_rate_count[fail_rate] += 1
     else:
-        if global_state != agent_1_observation and global_state != agent_2_observation:
-            fail_count += 1
-    
+        fail_rate_count[fail_rate] = 1
 
-print(f"String mode: {string_mode} / Failure Rate over {test_count} session: {fail_count/test_count*100}%")
+fail_rate_count_df = pd.DataFrame(list(fail_rate_count.items()), columns=['Fail Rate (%)', 'Count'])
+fail_rate_count_df = fail_rate_count_df.sort_values(by=['Fail Rate (%)'])
+fail_rate_count_df.to_csv("./cyclic_problem/simulation_2_results.csv", index=False)
 
-# Printing Communication Protocol
-print("\nCommunication Protocol for Agent 1:")
-for key, row_num in ROW_NUMS.items():
-    if key[0]==False:
-        action = np.argmax(q_1[row_num])
-        communication_decision = "does not communicate" if action==0 else "communicates"
-        print(f"If agent 1's belief state is {key[1]} and observes 'a', then Agent 1 {communication_decision}.")
+print("Fail Rate Count over", session_count, "sessions:")
+print(fail_rate_count_df)
 
-print("\nCommunication Protocol for Agent 2:")
-for key, row_num in ROW_NUMS.items():
-    if key[0]==False:
-        action = np.argmax(q_2[row_num])
-        communication_decision = "does not communicate" if action==0 else "communicates"
-        print(f"If agent 2's belief state is {key[1]} and observe 'b', then Agent 2 {communication_decision}.")
+print(success_dict)
+
+success_dict_df = pd.DataFrame(list(success_dict.items()), columns=['Communication Protocols', 'Success Count'])
+success_dict_df.to_csv("./cyclic_problem/simulation_2_successful_protocols.csv", index=False)
+
+
+# # Printing Communication Protocol
+# print("\nCommunication Protocol for Agent 1:")
+# for key, row_num in ROW_NUMS.items():
+#     if key[0]==False:
+#         action = np.argmax(q_1[row_num])
+#         communication_decision = "does not communicate" if action==0 else "communicates"
+#         print(f"If agent 1's belief state is {key[1]} and observes 'a', then Agent 1 {communication_decision}.")
+
+# print("\nCommunication Protocol for Agent 2:")
+# for key, row_num in ROW_NUMS.items():
+#     if key[0]==False:
+#         action = np.argmax(q_2[row_num])
+#         communication_decision = "does not communicate" if action==0 else "communicates"
+#         print(f"If agent 2's belief state is {key[1]} and observe 'b', then Agent 2 {communication_decision}.")
         
