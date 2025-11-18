@@ -39,7 +39,7 @@ for i in range(session_count):
     fail_count = 0
     test_count = 1000
 
-    string_mode = "full" # options: "simulation", "half", "full"
+    string_mode = "training" # options: "simulation", ""
 
     env = gym.make("CylicEnv-v0", render_mode = None, string_mode=string_mode)
     
@@ -102,12 +102,8 @@ for i in range(session_count):
                 
                 curr_symbol=info['input_alphabet']
         
-        if string_mode=="simulation":
-            if not simulation_result:
-                fail_count += 1
-        else:
-            if global_state != agent_1_observation and global_state != agent_2_observation:
-                fail_count += 1
+        if not simulation_result:
+            fail_count += 1
         
     fail_rate = np.round(fail_count/test_count*100, 2)
     
@@ -141,19 +137,4 @@ print(success_dict)
 success_dict_df = pd.DataFrame(list(success_dict.items()), columns=['Communication Protocols', 'Success Count'])
 success_dict_df.to_csv("./cyclic_problem/simulation_2_successful_protocols.csv", index=False)
 
-
-# # Printing Communication Protocol
-# print("\nCommunication Protocol for Agent 1:")
-# for key, row_num in ROW_NUMS.items():
-#     if key[0]==False:
-#         action = np.argmax(q_1[row_num])
-#         communication_decision = "does not communicate" if action==0 else "communicates"
-#         print(f"If agent 1's belief state is {key[1]} and observes 'a', then Agent 1 {communication_decision}.")
-
-# print("\nCommunication Protocol for Agent 2:")
-# for key, row_num in ROW_NUMS.items():
-#     if key[0]==False:
-#         action = np.argmax(q_2[row_num])
-#         communication_decision = "does not communicate" if action==0 else "communicates"
-#         print(f"If agent 2's belief state is {key[1]} and observe 'b', then Agent 2 {communication_decision}.")
-        
+# Go to stats.py to analyze the results

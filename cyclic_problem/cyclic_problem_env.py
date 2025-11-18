@@ -34,7 +34,7 @@ class CylicEnv(gym.Env):
         -1:{'a':-1, 'b':-1, 'x':-1, 'y':-1},
     }
     
-    metadata = {'render_modes': ['human'], 'string_modes': ['full', 'half', 'simulation']}
+    metadata = {'render_modes': ['human'], 'string_modes': ['training', 'simulation']}
     
     def __init__(self, string_mode="full", render_mode=None, max_star=5):
         self.string_generator = RegexStringGenerator(max_star=max_star)
@@ -48,10 +48,8 @@ class CylicEnv(gym.Env):
         self.render_mode = render_mode
         
     def reset(self, seed=None, options=None):
-        if self.string_mode == "full":
-            self.string=self.string_generator.generate_full_training_str()+"$"
-        elif self.string_mode == "half":
-            self.string=self.string_generator.generate_half_training_str()+"$"
+        if self.string_mode == "training":
+            self.string=self.string_generator.generate_training_str()+"$"
         elif self.string_mode == "simulation":
             self.string=self.string_generator.generate_simulation_str()+"$"
         self.string_index=0
@@ -143,8 +141,8 @@ class CylicEnv(gym.Env):
             reward -= 100
             terminated = True
         
-        elif self.agent_1_belief == -1 and self.agent_2_belief == -1:
-            
+        if self.agent_1_belief == -1 and self.agent_2_belief == -1:
+            # terminate current episode as soon as both agents are in dead state; shortening training time
             terminated = True
             reward -= 100
         

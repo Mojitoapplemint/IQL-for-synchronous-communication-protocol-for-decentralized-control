@@ -153,7 +153,7 @@ class RegexStringGenerator:
         return result
     
         
-    def generate_full_training_str(self):
+    def generate_training_str(self):
         result = self.generate_half_training_str()[:-1]
                 
         num_maintenance_str = random.randint(0, self.max_star//2)
