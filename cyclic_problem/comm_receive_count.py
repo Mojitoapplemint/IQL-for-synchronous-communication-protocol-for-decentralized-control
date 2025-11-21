@@ -49,7 +49,7 @@ a_2_receive = [[0,0],
                 [0,0],
                 [0,0]]
 
-successful_protocols = pd.read_csv("cyclic_problem/simulation_2_successful_protocols_100.csv")
+successful_protocols = pd.read_csv("cyclic_problem/simulation_2_successful_protocols.csv")
 
 a_1_receive_percentage = [[],[],[],[],[],[],[]]
 a_2_receive_percentage = [[],[],[],[],[],[],[]]

@@ -200,18 +200,18 @@ fail_rate_count={}
 over_comm_rate_count={}
 success_dict = {}
 result_dict = {}
-session_count = 1000
+session_count = 100
 
 for i in range(session_count):
     print(str(100*i/session_count)+"%","done" , end="\r")
     env = gym.make('UOEnv-v0', render_mode=None, string_mode="training")
-    q_1, q_2 = q_training(env, epochs=50000, alpha=0.01, gamma=0.5, epsilon=0.1)
+    q_1, q_2 = q_training(env, epochs=200000, alpha=0.01, gamma=0.1, epsilon=0.1)
 
     env = gym.make('UOEnv-v0', render_mode=None, string_mode="simulation")
 
     fail_count = 0
     over_comm_count = 0
-    test_count = 1000
+    test_count = 100
     for _ in range (test_count):
 
         terminated = False

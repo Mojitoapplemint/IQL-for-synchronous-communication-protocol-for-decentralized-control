@@ -142,27 +142,32 @@ class CylicEnv(gym.Env):
             curr_symbol=self.string[self.string_index]
         
         # Penalty Assignment
-        if self.global_state == 5 and not(self.agent_1_belief == 5 or self.agent_2_belief == 5):
-            # Penalized configuration Condition 1
-            reward -= 200
-            terminated = True
-        elif self.global_state != 5 and self.agent_1_belief in [5,-1] and self.agent_2_belief in [5, -1]:
-            # Penalized configuration Condition 2
-            reward -=  200
-            terminated = True
-        
         if self.agent_1_belief == -1 and self.agent_2_belief == -1:
             # terminate current episode as soon as both agents are in dead state; shortening training time
             terminated = True
-            reward -= 200
+            reward -= 500
+        if self.global_state == 5 and not(self.agent_1_belief == 5 or self.agent_2_belief == 5):
+            # Penalized configuration Condition 1
+            reward -= 500
+            terminated = True
+        elif self.global_state != 5 and self.agent_1_belief in [5,-1] and self.agent_2_belief in [5, -1]:
+            # Penalized configuration Condition 2
+            reward -=  500
+            terminated = True
+        elif self.string[self.string_index]=="$":
+            terminated = True
+            
         
-        if self.global_state == 5 and self.agent_1_belief == 5 and self.agent_2_belief == 5:
-            # Successful termination Condition
-            terminated = True
-            reward += 100
-        elif self.global_state == 5 and (self.agent_1_belief == 5 or self.agent_2_belief == 5):
-            terminated = True
-            reward += 200
+        
+        
+        
+        # if self.global_state == 5 and self.agent_1_belief == 5 and self.agent_2_belief == 5:
+        #     # Successful termination Condition
+        #     terminated = True
+        #     reward += 100
+        # elif self.global_state == 5 and (self.agent_1_belief == 5 or self.agent_2_belief == 5):
+        #     terminated = True
+        #     reward += 200
         
         config = (self.global_state, self.agent_1_belief, self.agent_2_belief)
         

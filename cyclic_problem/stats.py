@@ -56,7 +56,7 @@ PHI = {
 # string_list = df["strings"].to_list()
 
 
-successful_protocols = pd.read_csv("cyclic_problem/simulation_2_successful_protocols_100.csv")
+successful_protocols = pd.read_csv("cyclic_problem/simulation_2_successful_protocols.csv")
 
 success_return_values_x = []
 success_return_values_y = []
@@ -101,8 +101,8 @@ for index, row in successful_protocols.iterrows():
                 agent_1_row_num = PHI[(agent_2_in_dead_state, agent_1_belief)]
                 
                 if agent_1_prev_row_num != -1:
-                    # return_value[0] += (0.5**t_1)*reward_1
-                    return_value[0] += reward_1
+                    return_value[0] += (0.5**t_1)*reward_1
+                    # return_value[0] += reward_1
                     t_1+=1
                     reward_1 = 0
                 
@@ -129,8 +129,8 @@ for index, row in successful_protocols.iterrows():
                 agent_2_row_num = PHI[(agent_1_in_dead_state, agent_2_belief)]
                 
                 if agent_2_prev_row_num != -1:
-                    # return_value[1] += (0.5**t_2)*reward_2
-                    return_value[1] += reward_2
+                    return_value[1] += (0.5**t_2)*reward_2
+                    # return_value[1] += reward_2
                     t_2+=1
                     reward_2 = 0
                 
@@ -149,10 +149,10 @@ for index, row in successful_protocols.iterrows():
         reward_1 += reward
         reward_2 += reward
         
-        return_value[0] += reward_1
-        return_value[1] += reward_2
-        # return_value[0] += (0.5**t_1)*reward_1
-        # return_value[1] += (0.5**t_2)*reward_2
+        # return_value[0] += reward_1
+        # return_value[1] += reward_2
+        return_value[0] += (0.5**t_1)*reward_1
+        return_value[1] += (0.5**t_2)*reward_2
     
     return_value[0] = np.round(return_value[0]/1000, 2)
     return_value[1] = np.round(return_value[1]/1000, 2)
@@ -160,7 +160,7 @@ for index, row in successful_protocols.iterrows():
     success_return_values_y.append(return_value[1])
     
 
-failed_protocols = pd.read_csv("cyclic_problem/simulation_2_failed_protocols_100.csv")
+failed_protocols = pd.read_csv("cyclic_problem/simulation_2_failed_protocols.csv")
 
 failed_return_values_x = []
 failed_return_values_y = []

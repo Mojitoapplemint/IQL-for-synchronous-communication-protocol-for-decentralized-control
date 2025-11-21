@@ -181,14 +181,18 @@ regexgen = StringGenerator(max_star=5)
 string_list = []
 
 # for i in range(1000):
-#     string_list.append(regexgen.generate_training_str())
+#     string = regexgen.generate_training_str()
+#     string_list.append(string)
+
+
+# print(len(string_list))
 
 # df = pd.DataFrame(string_list, columns=["strings"])
 # df.to_csv("problem_w_unobservable_events/strings.csv", index=False)
     
 
-df = pd.read_csv("problem_w_unobservable_events/strings.csv")
-string_list = df["strings"].to_list()
+# df = pd.read_csv("problem_w_unobservable_events/strings.csv")
+# string_list = df["strings"].to_list()
 
 
 successful_protocols = pd.read_csv("problem_w_unobservable_events/simulation_2_successful_protocols.csv")
@@ -199,8 +203,10 @@ success_return_values_x = []
 success_return_values_y = []
 
 return_values = [0,0]
+communicate_counts = []
 
 for index, row in successful_protocols.iterrows():
+    print(f"{index} / {len(successful_protocols)}", end="\r")
     protocol = row["Communication Protocols"].replace("(","").replace(")","").split(", ")
     protocol = [int(x) for x in protocol]
     
@@ -210,6 +216,8 @@ for index, row in successful_protocols.iterrows():
     return_value = [0,0]
     
     env = gym.make("UOEnv-v0", render_mode = None, string_mode="stats")
+    
+    communicate_count = [0,0]
     
     for i in range (1000):
         terminated = False
@@ -234,6 +242,8 @@ for index, row in successful_protocols.iterrows():
         
         t_1=1
         t_2=1
+        
+        
         while not (terminated):
             if curr_symbol in ['a', 'c']:
                 
@@ -253,6 +263,9 @@ for index, row in successful_protocols.iterrows():
                 else:
                     agent_1_row_num = len(PHI_1)+PHI_1[(agent_1_belief, curr_symbol)] if agent_2_in_dead_state else PHI_1[(agent_1_belief, curr_symbol)]
                     agent_1_communicate = q_1[agent_1_row_num]
+                    
+                if agent_1_communicate ==1:
+                    communicate_count[0] += 1
                     
                 
                 config, reward, terminated, truncated, info = env.step((agent_id, agent_1_communicate))
@@ -283,6 +296,9 @@ for index, row in successful_protocols.iterrows():
                     agent_2_row_num = len(PHI_2)+PHI_2[(agent_2_belief, curr_symbol)] if agent_1_in_dead_state else PHI_2[(agent_2_belief, curr_symbol)]
                     agent_2_communicate = q_2[agent_2_row_num]
                 
+                if agent_1_communicate ==1:
+                    communicate_count[1] += 1
+                
                 config, reward, terminated, truncated, info = env.step((agent_id, agent_2_communicate))
                 
                 _, agent_1_belief, agent_2_belief = config
@@ -303,12 +319,16 @@ for index, row in successful_protocols.iterrows():
         return_value[1] += reward_2
         # return_value[0] += (0.5**t_1)*reward_1
         # return_value[1] += (0.5**t_2)*reward_2
+        
+    communicate_counts.append(communicate_count)
     
     return_value[0] = np.round(return_value[0]/1000, 2)
     return_value[1] = np.round(return_value[1]/1000, 2)
     success_return_values_x.append(return_value[0])
     success_return_values_y.append(return_value[1])
     
+print(communicate_counts)    
+
 plt.figure(figsize=(10,6))
 plt.scatter(success_return_values_x, success_return_values_y, color='blue', label='Successful Protocols')
 plt.xlabel('Agent 1 Average Return')
