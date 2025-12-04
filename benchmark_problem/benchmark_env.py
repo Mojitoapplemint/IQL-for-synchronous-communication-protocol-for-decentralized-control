@@ -68,7 +68,7 @@ class BenchmarkEnv(gym.Env):
         
         self.global_state = self.global_transitions[self.global_state].get(curr_symbol)
         if agent_id==1:
-            self.agent_1_belief = self.agent_1_transitions[self.agent_1_belief].get(curr_symbol)
+            self.agent_1_belief = self.bottom_transitions[self.agent_1_belief].get(curr_symbol)
             if communicate == 1:
                 self.reward-=self.COMMUNICATION_COST
                 self.agent_2_belief = self.bottom_transitions[self.agent_2_belief].get(curr_symbol)
@@ -76,7 +76,7 @@ class BenchmarkEnv(gym.Env):
             self.agent_2_belief = self.bottom_transitions[self.agent_2_belief].get(curr_symbol)
             if communicate == 1:
                 self.reward-=self.COMMUNICATION_COST
-                self.agent_1_belief = self.agent_1_transitions[self.agent_1_belief].get(curr_symbol)
+                self.agent_1_belief = self.bottom_transitions[self.agent_1_belief].get(curr_symbol)
         else:
             raise ValueError("Invalid agent_id. Must be 1 or 2.")
         
@@ -87,7 +87,7 @@ class BenchmarkEnv(gym.Env):
         
         if self.string[self.string_index]=='s':
             self.global_state=self.global_transitions[self.global_state].get('s')
-            self.agent_1_belief=self.agent_1_transitions[self.agent_1_belief].get('s')
+            self.agent_1_belief=self.bottom_transitions[self.agent_1_belief].get('s')
             self.agent_2_belief=self.bottom_transitions[self.agent_2_belief].get('s')
 
             config=(self.global_state, self.agent_1_belief, self.agent_2_belief)
@@ -99,8 +99,8 @@ class BenchmarkEnv(gym.Env):
             
             if config==(7,-1,-1) or config==(6,-1,-1):
                 self.reward-=100
-            else:
-                self.reward+=100
+            # else:
+            #     self.reward+=100
         
         else:
             config=(self.global_state, self.agent_1_belief, self.agent_2_belief)

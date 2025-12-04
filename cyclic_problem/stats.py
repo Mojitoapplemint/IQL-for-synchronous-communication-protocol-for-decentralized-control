@@ -57,221 +57,137 @@ PHI = {
 
 
 successful_protocols = pd.read_csv("cyclic_problem/simulation_2_successful_protocols.csv")
-
-success_return_values_x = []
-success_return_values_y = []
-
-for index, row in successful_protocols.iterrows():
-    protocol = row["Communication Protocols"].replace("(","").replace(")","").split(", ")
-    protocol = [int(x) for x in protocol]
-    q_1 = protocol[:7]
-    q_2 = protocol[7:]
-    
-    return_value = [0,0]
-    
-    env = gym.make("CylicEnv-v0", render_mode = None, string_mode="stats")
-    
-    for i in range (1000):
-        terminated = False
-        simulation_result = False
-
-
-        config, info = env.reset()
-
-        global_state, agent_1_belief, agent_2_belief = config
-
-        curr_symbol=info['input_alphabet']
-
-        agent_1_prev_row_num = -1
-        agent_2_prev_row_num = -1
-
-        agent_1_in_dead_state = False
-        agent_2_in_dead_state = False
-
-        
-        reward_1=0
-        reward_2=0
-
-        t_1=1
-        t_2=1
-        while not(terminated):
-            if curr_symbol == "a":
-                
-                agent_id=1
-                agent_1_row_num = PHI[(agent_2_in_dead_state, agent_1_belief)]
-                
-                if agent_1_prev_row_num != -1:
-                    return_value[0] += (0.5**t_1)*reward_1
-                    # return_value[0] += reward_1
-                    t_1+=1
-                    reward_1 = 0
-                
-                if agent_2_in_dead_state:
-                    agent_1_communicate = 0
-                else:
-                    agent_1_communicate = q_1[agent_1_row_num]
-                
-                config, reward, terminated, simulation_result, info = env.step((agent_id, agent_1_communicate))
-                
-                global_state, agent_1_belief, agent_2_belief = config
-                
-                reward_1 += reward
-                
-                curr_symbol=info['input_alphabet']
-                
-                agent_1_in_dead_state = agent_1_belief == -1
-                
-                agent_1_prev_row_num = agent_1_row_num
-                
-            if curr_symbol == 'b': # curr_symbol == "c"
-                
-                agent_id=2
-                agent_2_row_num = PHI[(agent_1_in_dead_state, agent_2_belief)]
-                
-                if agent_2_prev_row_num != -1:
-                    return_value[1] += (0.5**t_2)*reward_2
-                    # return_value[1] += reward_2
-                    t_2+=1
-                    reward_2 = 0
-                
-                if agent_1_in_dead_state:
-                    agent_2_communicate = 0
-                else:
-                    agent_2_communicate = q_2[agent_2_row_num]
-                
-                config, reward, terminated, simulation_result, info = env.step((agent_id, agent_2_communicate))
-                global_state, agent_1_belief, agent_2_belief = config   
-                reward_2 += reward
-                curr_symbol=info['input_alphabet']
-                agent_2_in_dead_state = agent_2_belief == -1
-                agent_2_prev_row_num = agent_2_row_num
-        
-        reward_1 += reward
-        reward_2 += reward
-        
-        # return_value[0] += reward_1
-        # return_value[1] += reward_2
-        return_value[0] += (0.5**t_1)*reward_1
-        return_value[1] += (0.5**t_2)*reward_2
-    
-    return_value[0] = np.round(return_value[0]/1000, 2)
-    return_value[1] = np.round(return_value[1]/1000, 2)
-    success_return_values_x.append(return_value[0])
-    success_return_values_y.append(return_value[1])
-    
-
 failed_protocols = pd.read_csv("cyclic_problem/simulation_2_failed_protocols.csv")
 
-failed_return_values_x = []
-failed_return_values_y = []
-
-for index, row in failed_protocols.iterrows():
-    protocol = row["Communication Protocols"].replace("(","").replace(")","").split(", ")
-    protocol = [int(x) for x in protocol]
-    q_1 = protocol[:7]
-    q_2 = protocol[7:]
-    
-    return_value = [0,0]
-    
-    env = gym.make("CylicEnv-v0", render_mode = None, string_mode="stats")
-    
-    for i in range (1000):
-        terminated = False
-        simulation_result = False
-
-
-        config, info = env.reset()
-
-        global_state, agent_1_belief, agent_2_belief = config
-
-        curr_symbol=info['input_alphabet']
-
-        agent_1_prev_row_num = -1
-        agent_2_prev_row_num = -1
-
-        agent_1_in_dead_state = False
-        agent_2_in_dead_state = False
-
-        
-        reward_1=0
-        reward_2=0
-
-        t_1=1
-        t_2=1
-        while not(terminated):
-            if curr_symbol == "a":
-                
-                agent_id=1
-                agent_1_row_num = PHI[(agent_2_in_dead_state, agent_1_belief)]
-                
-                if agent_1_prev_row_num != -1:
-                    # return_value[0] += (0.5**t_1)*reward_1
-                    return_value[0] += reward_1
-                    t_1+=1
-                    reward_1 = 0
-                
-                if agent_2_in_dead_state:
-                    agent_1_communicate = 0
-                else:
-                    agent_1_communicate = q_1[agent_1_row_num]
-                
-                config, reward, terminated, simulation_result, info = env.step((agent_id, agent_1_communicate))
-                
-                global_state, agent_1_belief, agent_2_belief = config
-                
-                reward_1 += reward
-                
-                curr_symbol=info['input_alphabet']
-                
-                agent_1_in_dead_state = agent_1_belief == -1
-                
-                agent_1_prev_row_num = agent_1_row_num
-                
-            if curr_symbol == 'b': # curr_symbol == "c"
-                
-                agent_id=2
-                agent_2_row_num = PHI[(agent_1_in_dead_state, agent_2_belief)]
-                
-                if agent_2_prev_row_num != -1:
-                    # return_value[1] += (0.5**t_2)*reward_2
-                    return_value[1] += reward_2
-                    t_2+=1
-                    reward_2 = 0
-                
-                if agent_1_in_dead_state:
-                    agent_2_communicate = 0
-                else:
-                    agent_2_communicate = q_2[agent_2_row_num]
-                
-                config, reward, terminated, simulation_result, info = env.step((agent_id, agent_2_communicate))
-                global_state, agent_1_belief, agent_2_belief = config   
-                reward_2 += reward
-                curr_symbol=info['input_alphabet']
-                agent_2_in_dead_state = agent_2_belief == -1
-                agent_2_prev_row_num = agent_2_row_num
-        
-        reward_1 += reward
-        reward_2 += reward
-        
-        return_value[0] += reward_1
-        return_value[1] += reward_2
-        # return_value[0] += (0.5**t_1)*reward_1
-        # return_value[1] += (0.5**t_2)*reward_2
-    
-    return_value[0] = np.round(return_value[0]/1000, 2)
-    return_value[1] = np.round(return_value[1]/1000, 2)
-    failed_return_values_x.append(return_value[0])
-    failed_return_values_y.append(return_value[1])
+protocols_list = [successful_protocols, failed_protocols]
+labels = ['Successful Protocols', 'Failed Protocols', ]
+colors = ['blue', 'red']
 
 plt.figure(figsize=(10,6))
-plt.scatter(success_return_values_x, success_return_values_y, color='blue', label='Successful Protocols')
-plt.scatter(failed_return_values_x, failed_return_values_y, color='red', label='Failed Protocols')
-plt.xlabel('Agent 1 Average Return')
-plt.ylabel('Agent 2 Average Return')
-plt.title('Return Values of Communication Protocols')
+
+for protocols, label, color in zip(protocols_list, labels, colors):
+    return_values_x = []
+    return_values_y = []
+    for index, row in protocols.iterrows():
+        protocol = row["Communication Protocols"].replace("(","").replace(")","").split(", ")
+        protocol = [int(x) for x in protocol]
+        q_1 = protocol[:7]
+        q_2 = protocol[7:]
+        
+        return_value = [0,0]
+        
+        env = gym.make("CylicEnv-v0", render_mode = None, string_mode="stats")
+        
+        
+        a_1_comm_count = 0
+        a_2_comm_count = 0
+        for i in range (1000):
+            terminated = False
+            simulation_result = False
+
+
+            config, info = env.reset()
+
+            global_state, agent_1_belief, agent_2_belief = config
+
+            curr_symbol=info['input_alphabet']
+
+            agent_1_prev_row_num = -1
+            agent_2_prev_row_num = -1
+
+            agent_1_in_dead_state = False
+            agent_2_in_dead_state = False
+
+            
+            reward_1=0
+            reward_2=0
+
+            t_1=1
+            t_2=1
+            
+            while not(terminated):
+                if curr_symbol == "a":
+                    
+                    agent_id=1
+                    agent_1_row_num = PHI[(agent_2_in_dead_state, agent_1_belief)]
+                    
+                    if agent_1_prev_row_num != -1:
+                        return_value[0] += (0.5**t_1)*reward_1
+                        t_1+=1
+                        reward_1 = 0
+                    
+                    if agent_2_in_dead_state:
+                        agent_1_communicate = 0
+                    else:
+                        agent_1_communicate = q_1[agent_1_row_num]
+                    
+                    if agent_1_communicate ==1:
+                        a_1_comm_count += 1
+                    
+                    config, reward, terminated, simulation_result, info = env.step((agent_id, agent_1_communicate))
+                    
+                    global_state, agent_1_belief, agent_2_belief = config
+                    
+                    reward_1 += reward
+                    
+                    curr_symbol=info['input_alphabet']
+                    
+                    agent_1_in_dead_state = agent_1_belief == -1
+                    
+                    agent_1_prev_row_num = agent_1_row_num
+                    
+                if curr_symbol == 'b': # curr_symbol == "c"
+                    
+                    agent_id=2
+                    agent_2_row_num = PHI[(agent_1_in_dead_state, agent_2_belief)]
+                    
+                    if agent_2_prev_row_num != -1:
+                        return_value[1] += (0.5**t_2)*reward_2
+                        t_2+=1
+                        reward_2 = 0
+                    
+                    if agent_1_in_dead_state:
+                        agent_2_communicate = 0
+                    else:
+                        agent_2_communicate = q_2[agent_2_row_num]
+                    
+                    if agent_2_communicate ==1:
+                        a_2_comm_count += 1
+                    
+                    config, reward, terminated, simulation_result, info = env.step((agent_id, agent_2_communicate))
+                    global_state, agent_1_belief, agent_2_belief = config   
+                    reward_2 += reward
+                    curr_symbol=info['input_alphabet']
+                    agent_2_in_dead_state = agent_2_belief == -1
+                    agent_2_prev_row_num = agent_2_row_num
+            
+            reward_1 += reward
+            reward_2 += reward
+            
+            return_value[0] += (0.5**t_1)*reward_1
+            return_value[1] += (0.5**t_2)*reward_2
+            # if i==250 or i==500 or i==750:
+                # print(f"{a_1_comm_count, a_2_comm_count}, Intermediate Return Values: Agent 1: {np.round(return_value[0]/(i+1),2)}, Agent 2: {np.round(return_value[1]/(i+1),2)}")
+        
+        
+        return_value[0] = np.round(return_value[0]/1000, 2)
+        return_value[1] = np.round(return_value[1]/1000, 2)
+        return_values_x.append(return_value[0])
+        return_values_y.append(return_value[1])
+    print(f"Average Communication Counts for {label}: Agent 1: {np.round(a_1_comm_count/1000, 2)}, Agent 2: {np.round(a_2_comm_count/1000, 2)}")
+    
+    plt.scatter(return_values_x, return_values_y, color=color, label=label)
+    
+    print(f"average return values for {label}: Agent 1: {np.round(np.mean(return_values_x),2)}, Agent 2: {np.round(np.mean(return_values_y),2)}")
+
+
+
+
+plt.xlabel('Agent 1 Average Cumulative Rewards')
+plt.ylabel('Agent 2 Average Cumulative Rewards')
 plt.legend()
 plt.grid(True)
-plt.savefig("cyclic_problem/protocol_return_values_scatter_plot.png")
+plt.savefig("cyclic_problem/protocol_cumreward_values_scatter_plot.png")
 plt.show()
 
 

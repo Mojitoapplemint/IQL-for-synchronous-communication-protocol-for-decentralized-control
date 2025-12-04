@@ -212,44 +212,16 @@ class UOEnv(gym.Env):
             # Penalized configuration condition 1-2
             reward -=500
             terminated = True
-        elif self.agent_0_state != 11 and self.agent_1_belief == 11 and self.agent_2_belief == 11:
+        elif self.agent_0_state != 11 and self.agent_1_belief in [11,-1] and self.agent_2_belief in [11,-1]:
             # Penalized configuration condition 2-1
             reward -=500
             terminated = True
-        elif self.agent_0_state != 9 and self.agent_1_belief == 9 and self.agent_2_belief == 9:
+        elif self.agent_0_state != 9 and self.agent_1_belief in [9,-1] and self.agent_2_belief in [9,-1]:
             # Penalized configuration condition 2-2
             reward -=500
             terminated = True
         elif self.string[self.string_index]=="$":
             terminated = True
-            
-        # elif self.agent_0_state == 11 and self.agent_1_belief ==11 and self.agent_2_belief==11:
-        #     terminated = True
-        #     reward += 100
-        # elif self.agent_0_state == 11 and (self.agent_1_belief ==11 or self.agent_2_belief==11):
-        #     terminated = True
-        #     reward += 200
-        # elif self.agent_0_state == 9 and self.agent_1_belief ==9 and self.agent_2_belief==9:
-        #     terminated = True
-        #     reward += 100
-        # elif self.agent_0_state == 9 and (self.agent_1_belief ==9 or self.agent_2_belief==9):
-        #     terminated = True
-        #     reward += 200
-        
-
-
-        # if self.agent_0_state ==11 and (self.agent_1_belief ==11 or self.agent_2_belief ==11):
-        #     reward += 200
-        #     terminated = True
-        # elif self.agent_0_state ==9 and (self.agent_1_belief ==9 or self.agent_2_belief ==9):
-        #     reward += 200
-        #     terminated = True
-        # elif self.string[self.string_index]=="$":
-        #     reward -= 100
-        #     terminated = True
-        
-        # if (self.agent_1_belief != self.agent_0_state) and (self.agent_2_belief != self.agent_0_state):
-        #     reward -= 50
         
         
         config = (self.agent_0_state, self.agent_1_belief, self.agent_2_belief)

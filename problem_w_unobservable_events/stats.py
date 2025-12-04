@@ -180,12 +180,7 @@ regexgen = StringGenerator(max_star=5)
 
 string_list = []
 
-# for i in range(1000):
-#     string = regexgen.generate_training_str()
-#     string_list.append(string)
-
-
-# print(len(string_list))
+string_list = regexgen.generate_stats_str()
 
 # df = pd.DataFrame(string_list, columns=["strings"])
 # df.to_csv("problem_w_unobservable_events/strings.csv", index=False)
@@ -201,6 +196,7 @@ print(len(successful_protocols["Communication Protocols"].unique()))
 
 success_return_values_x = []
 success_return_values_y = []
+joint_return_values = []
 
 return_values = [0,0]
 communicate_counts = []
@@ -236,27 +232,21 @@ for index, row in successful_protocols.iterrows():
         agent_1_in_dead_state = False
         agent_2_in_dead_state = False
 
-        
         reward_1=0
         reward_2=0
         
         t_1=1
-        t_2=1
-        
-        
+        t_2=1        
         while not (terminated):
             if curr_symbol in ['a', 'c']:
                 
-                
                 agent_id=1
-
                 
                 if agent_1_prev_row_num != -1 :
-                    # return_value[0] += (0.5**t_1)*reward_1
-                    return_value[0] += reward_1
+                    return_value[0] += (0.5**t_1)*reward_1
+                    # return_value[0] += reward_1
                     t_1+=1
                     reward_1 = 0
-                
 
                 if agent_2_in_dead_state:
                     agent_1_communicate = 0
@@ -265,8 +255,7 @@ for index, row in successful_protocols.iterrows():
                     agent_1_communicate = q_1[agent_1_row_num]
                     
                 if agent_1_communicate ==1:
-                    communicate_count[0] += 1
-                    
+                    communicate_count[0] += 1 
                 
                 config, reward, terminated, truncated, info = env.step((agent_id, agent_1_communicate))
                 
@@ -285,8 +274,8 @@ for index, row in successful_protocols.iterrows():
                 agent_id=2
                 
                 if agent_2_prev_row_num != -1 :
-                    # return_value[1] += (0.5**t_2)*reward_2
-                    return_value[1] += reward_2
+                    return_value[1] += (0.5**t_2)*reward_2
+                    # return_value[1] += reward_2
                     t_2+=1
                     reward_2 = 0
                 
@@ -296,7 +285,7 @@ for index, row in successful_protocols.iterrows():
                     agent_2_row_num = len(PHI_2)+PHI_2[(agent_2_belief, curr_symbol)] if agent_1_in_dead_state else PHI_2[(agent_2_belief, curr_symbol)]
                     agent_2_communicate = q_2[agent_2_row_num]
                 
-                if agent_1_communicate ==1:
+                if agent_2_communicate ==1:
                     communicate_count[1] += 1
                 
                 config, reward, terminated, truncated, info = env.step((agent_id, agent_2_communicate))
@@ -315,10 +304,13 @@ for index, row in successful_protocols.iterrows():
         reward_1 += reward
         reward_2 += reward
         
-        return_value[0] += reward_1
-        return_value[1] += reward_2
-        # return_value[0] += (0.5**t_1)*reward_1
-        # return_value[1] += (0.5**t_2)*reward_2
+        # return_value[0] += reward_1
+        # return_value[1] += reward_2
+        return_value[0] += (0.5**t_1)*reward_1
+        return_value[1] += (0.5**t_2)*reward_2
+        
+        if communicate_count[0]==0 and communicate_count[1]==0:
+            print(protocol)
         
     communicate_counts.append(communicate_count)
     
@@ -326,9 +318,12 @@ for index, row in successful_protocols.iterrows():
     return_value[1] = np.round(return_value[1]/1000, 2)
     success_return_values_x.append(return_value[0])
     success_return_values_y.append(return_value[1])
+    joint_return_values.append((return_value[0], return_value[1]))
     
-print(communicate_counts)    
+# print(communicate_counts)
 
+print(pd.DataFrame(joint_return_values, columns=['Agent 1 Return', 'Agent 2 Return']).value_counts())
+ 
 plt.figure(figsize=(10,6))
 plt.scatter(success_return_values_x, success_return_values_y, color='blue', label='Successful Protocols')
 plt.xlabel('Agent 1 Average Return')
@@ -336,5 +331,8 @@ plt.ylabel('Agent 2 Average Return')
 plt.title('Return Values of Communication Protocols')
 plt.legend()
 plt.grid(True)
-plt.savefig("problem_w_unobservable_events/protocol_return_values_scatter_plot.png")
 plt.show()
+
+communicate_counts = pd.DataFrame(communicate_counts, columns=['Agent 1 Communicate Count', 'Agent 2 Communicate Count'])
+
+print(communicate_counts.value_counts())

@@ -27,7 +27,7 @@ m_bottom={
     -1: {-1},
 }
 
-ROW_NUMS_1={
+PHI_1={
     (1, 'a'):0,
     (2, 'a'):1,
     (3, 'a'):2,
@@ -70,7 +70,7 @@ ROW_NUMS_1={
     (-1,'c'):39,
 }
 
-ROW_NUMS_2={
+PHI_2={
     (1, 'x'):0,
     (2, 'x'):1,
     (3, 'x'):2,
@@ -194,18 +194,16 @@ ROW_NUMS_2={
 }
 
 
-
-
 fail_rate_count={}
 over_comm_rate_count={}
 success_dict = {}
 result_dict = {}
-session_count = 100
+session_count = 1000
 
 for i in range(session_count):
     print(str(100*i/session_count)+"%","done" , end="\r")
     env = gym.make('UOEnv-v0', render_mode=None, string_mode="training")
-    q_1, q_2 = q_training(env, epochs=200000, alpha=0.01, gamma=0.1, epsilon=0.1)
+    q_1, q_2 = q_training(env, epochs=100000, alpha=0.01, gamma=0.1, epsilon=0.1)
 
     env = gym.make('UOEnv-v0', render_mode=None, string_mode="simulation")
 
@@ -218,6 +216,10 @@ for i in range(session_count):
         simulation_result = False
 
         config, info = env.reset()
+        
+        string = info['string']
+        
+        # print(string)
 
         curr_symbol=info['input_alphabet']
 
@@ -230,7 +232,7 @@ for i in range(session_count):
             if curr_symbol in ['a', 'c']:
                 
                 agent_id=1
-                agent_1_row_num = len(ROW_NUMS_1)+ROW_NUMS_1[(agent_1_belief, curr_symbol)] if agent_2_in_dead_state else ROW_NUMS_1[(agent_1_belief, curr_symbol)]
+                agent_1_row_num = len(PHI_1)+PHI_1[(agent_1_belief, curr_symbol)] if agent_2_in_dead_state else PHI_1[(agent_1_belief, curr_symbol)]
 
                 
                 if agent_2_in_dead_state:
@@ -249,7 +251,7 @@ for i in range(session_count):
                             
             if curr_symbol in ['x', 'y', 'z', 's', 't', 'r']:
                 agent_id=2
-                agent_2_row_num = len(ROW_NUMS_2)+ROW_NUMS_2[(agent_2_belief, curr_symbol)] if agent_1_in_dead_state else ROW_NUMS_2[(agent_2_belief, curr_symbol)]
+                agent_2_row_num = len(PHI_2)+PHI_2[(agent_2_belief, curr_symbol)] if agent_1_in_dead_state else PHI_2[(agent_2_belief, curr_symbol)]
 
                 if agent_1_in_dead_state:
                     agent_2_communicate = 0
@@ -264,7 +266,7 @@ for i in range(session_count):
                 
                 curr_symbol=info['input_alphabet']
         
-
+        # print(global_state, agent_1_belief, agent_2_belief)
         if (global_state != agent_1_belief) and (global_state != agent_2_belief):
             fail_count += 1
         if global_state == agent_1_belief and global_state == agent_2_belief:

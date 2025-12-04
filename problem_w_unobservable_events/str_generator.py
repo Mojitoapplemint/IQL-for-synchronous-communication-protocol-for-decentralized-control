@@ -82,3 +82,25 @@ class StringGenerator:
                 middle_groups += random.choice(["gaazra", "dxsa", "fayta"])
             
             return "da" + middle_groups + "axc"
+
+    def generate_stats_str(self):
+        strings = []
+        for _ in range(1000):
+            choice = random.randint(1, 2)
+            if choice == 1:
+                num_a = random.randint(4, 4+self.max_star)
+                string = "a" + "a" * num_a + "xac"
+                strings.append(string)
+            else:
+                first_group = random.choice(["xsa", "ayta", "aazra"])
+            
+                # Zero or more additional groups
+                num_additional = random.randint(0, self.max_star)
+                additional_groups = ""
+                
+                for _ in range(num_additional):
+                    additional_groups += random.choice(["xsa", "ayta", "aazra"])
+                
+                string = "a" + first_group + additional_groups + "axc"
+                strings.append(string)
+        return strings

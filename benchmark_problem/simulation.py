@@ -6,16 +6,16 @@ from benchmark_q import q_main
 
 env = gym.make('BenchmarkEnv-v0', render_mode=None)
 
-max_epochs=10000
+num_sessions=10000
 
 agent_1_communication_protocol=[[0,0], [0,0]]
 agent_2_communication_protocol=[[0,0], [0,0]]
 
 
-for epoch in range(max_epochs):
-    print(str(100*epoch/max_epochs)+"%","done" , end="\r")
+for session in range(num_sessions):
+    print(str(100*session/num_sessions)+"%","done" , end="\r")
     
-    q_1, q_2 = q_main(env, epochs=20000, alpha=0.01)
+    q_1, q_2 = q_main(env, epochs=2000, alpha=0.01)
     
     if q_1[0,0]>q_1[0,1]:
         agent_1_communication_protocol[0][0]+=1

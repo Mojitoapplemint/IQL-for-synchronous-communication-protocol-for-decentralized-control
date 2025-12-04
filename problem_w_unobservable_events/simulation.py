@@ -169,7 +169,7 @@ PHI_2={
 }
 
 
-    
+
 
 env = gym.make('UOEnv-v0', render_mode="human", string_mode="simulation")
 
@@ -184,10 +184,15 @@ _, agent_1_belief, agent_2_belief = config
 terminated = False
 truncated = False
 
-q_1 = pd.read_csv("./problem_w_unobservable_events/demo_q1_table.csv")
-q_2 = pd.read_csv("./problem_w_unobservable_events/demo_q2_table.csv")
-q_1 = q_1.drop(q_1.columns[[0]], axis=1).to_numpy()
-q_2 = q_2.drop(q_2.columns[[0]], axis=1).to_numpy()
+# q_1 = pd.read_csv("./problem_w_unobservable_events/demo_q1_table.csv")
+# q_2 = pd.read_csv("./problem_w_unobservable_events/demo_q2_table.csv")
+# q_1 = q_1.drop(q_1.columns[[0]], axis=1).to_numpy()
+# q_2 = q_2.drop(q_2.columns[[0]], axis=1).to_numpy()
+
+protocol = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+
+q_1 = protocol[:40]+np.zeros(40).tolist()
+q_2 = protocol[40:]+np.zeros(120).tolist()
 
 agent_1_in_dead_state = False
 agent_2_in_dead_state = False
@@ -202,7 +207,8 @@ while not (terminated or truncated):
         if agent_2_in_dead_state:
             agent_1_communicate = 0
         else:
-            agent_1_communicate = np.argmax(q_1[agent_1_row_num])
+            # agent_1_communicate = np.argmax(q_1[agent_1_row_num])
+            agent_1_communicate = q_1[agent_1_row_num]
             
         config, _, terminated, truncated, info = env.step((agent_id, agent_1_communicate))
         
@@ -220,7 +226,8 @@ while not (terminated or truncated):
         if agent_1_in_dead_state:
             agent_2_communicate = 0
         else:        
-            agent_2_communicate = np.argmax(q_2[agent_2_row_num])
+            # agent_2_communicate = np.argmax(q_2[agent_2_row_num])
+            agent_2_communicate = q_2[agent_2_row_num]
 
         config, _, terminated, _, info = env.step((agent_id, agent_2_communicate))
         

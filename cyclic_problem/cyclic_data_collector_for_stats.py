@@ -5,10 +5,10 @@ import random
 import cyclic_problem_env
 from cyclic_problem_q import q_training
 
-q_1 = pd.read_csv("./cyclic_problem/demo_q1_table.csv")
-q_2 = pd.read_csv("./cyclic_problem/demo_q2_table.csv")
-q_1 = q_1.drop(q_1.columns[[0]], axis=1).to_numpy()
-q_2 = q_2.drop(q_2.columns[[0]], axis=1).to_numpy()
+# q_1 = pd.read_csv("./cyclic_problem/demo_q1_table.csv")
+# q_2 = pd.read_csv("./cyclic_problem/demo_q2_table.csv")
+# q_1 = q_1.drop(q_1.columns[[0]], axis=1).to_numpy()
+# q_2 = q_2.drop(q_2.columns[[0]], axis=1).to_numpy()
 
 ROW_NUMS = {
     (False, 0 ):0,
@@ -32,7 +32,7 @@ fail_rate_count={}
 success_dict = {}
 fail_dict = {}
 over_comm_rate_count={}
-session_count = 1000
+session_count = 10
 
 for i in range(session_count):
     print(str(100*i/session_count)+"%","done" , end="\r")
@@ -45,7 +45,7 @@ for i in range(session_count):
 
     env = gym.make("CylicEnv-v0", render_mode = None, string_mode=string_mode)
     
-    q_1, q_2 = q_training(env, epochs=100000, alpha=0.01, gamma=0.1, epsilon=0.1)
+    q_1, q_2 = q_training(env, epochs=1000000, alpha=0.01, gamma=0.1, epsilon=0.1, print_process=True)
 
 
     string_mode = "simulation"
@@ -142,18 +142,18 @@ for i in range(session_count):
 
 fail_rate_count_df = pd.DataFrame(list(fail_rate_count.items()), columns=['Fail Rate (%)', 'Count'])
 fail_rate_count_df = fail_rate_count_df.sort_values(by=['Fail Rate (%)'])
-fail_rate_count_df.to_csv("./cyclic_problem/simulation_2_results.csv", index=False)
+fail_rate_count_df.to_csv("./cyclic_problem/simulation_2_results_1000000.csv", index=False)
 
 over_comm_rate_count_df = pd.DataFrame(list(over_comm_rate_count.items()), columns=['Over Communication Rate (%)', 'Count'])
 over_comm_rate_count_df = over_comm_rate_count_df.sort_values(by=['Over Communication Rate (%)'])
-over_comm_rate_count_df.to_csv("./cyclic_problem/simulation_2_over_communication_results.csv", index=False)
+over_comm_rate_count_df.to_csv("./cyclic_problem/simulation_2_over_communication_results_1000000.csv", index=False)
 
 
 success_dict_df = pd.DataFrame(list(success_dict.items()), columns=['Communication Protocols', 'Success Count'])
-success_dict_df.to_csv("./cyclic_problem/simulation_2_successful_protocols.csv", index=False)
+success_dict_df.to_csv("./cyclic_problem/simulation_2_successful_protocols_1000000.csv", index=False)
 
 fail_dict_df = pd.DataFrame(list(fail_dict.items()), columns=['Communication Protocols', 'Fail Count'])
-fail_dict_df.to_csv("./cyclic_problem/simulation_2_failed_protocols.csv", index=False)
+fail_dict_df.to_csv("./cyclic_problem/simulation_2_failed_protocols_1000000.csv", index=False)
 
 print("Fail Rate Count over", session_count, "sessions:")
 print(fail_rate_count_df)

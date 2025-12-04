@@ -7,7 +7,7 @@ import benchmark_env
 import warnings
 warnings.filterwarnings("ignore")
 
-LOCAL_STATES_1 = {
+PHI_1 = {
     (1,'a'):0,
     (3,'a'):1,
     (6,'$'):2,
@@ -16,7 +16,7 @@ LOCAL_STATES_1 = {
 }
 
 
-LOCAL_STATES_2 = {
+PHI_2 = {
     (1,'b'):0,
     (2,'b'):1,
     (6,'$'):2,
@@ -47,7 +47,7 @@ def q_main(env, epochs=10000, epsilon=0.1, gamma=0.1, alpha=0.1, print_process=F
         
         if curr_symbol == 'a':
             agent_id = 1
-            state_num_1 = LOCAL_STATES_1[(agent_1_belief, curr_symbol)]
+            state_num_1 = PHI_1[(agent_1_belief, curr_symbol)]
             
             communicate_1 = get_action(epsilon, q_1, state_num_1)
             
@@ -58,7 +58,7 @@ def q_main(env, epochs=10000, epsilon=0.1, gamma=0.1, alpha=0.1, print_process=F
             
             curr_symbol=info["input_alphabet"]
             
-            state_num_2 = LOCAL_STATES_2[(agent_2_belief, curr_symbol)]
+            state_num_2 = PHI_2[(agent_2_belief, curr_symbol)]
             
             communicate_2 = get_action(epsilon, q_2, state_num_2)
             
@@ -70,7 +70,7 @@ def q_main(env, epochs=10000, epsilon=0.1, gamma=0.1, alpha=0.1, print_process=F
         
         elif curr_symbol == 'b':
             agent_id = 2
-            state_num_2 = LOCAL_STATES_2[(agent_2_belief, curr_symbol)] 
+            state_num_2 = PHI_2[(agent_2_belief, curr_symbol)] 
             
             communicate_2 = get_action(epsilon, q_2, state_num_2)
             
@@ -81,7 +81,7 @@ def q_main(env, epochs=10000, epsilon=0.1, gamma=0.1, alpha=0.1, print_process=F
             
             curr_symbol=info["input_alphabet"]
             
-            state_num_1 = LOCAL_STATES_1[(agent_1_belief, curr_symbol)]
+            state_num_1 = PHI_1[(agent_1_belief, curr_symbol)]
             
             communicate_1 = get_action(epsilon, q_1, state_num_1)
             
@@ -94,8 +94,8 @@ def q_main(env, epochs=10000, epsilon=0.1, gamma=0.1, alpha=0.1, print_process=F
         
         next_curr_alphabet=info["input_alphabet"]
         
-        next_state_num_1 = LOCAL_STATES_1[(agent_1_belief, next_curr_alphabet)]
-        next_state_num_2 = LOCAL_STATES_2[(agent_2_belief, next_curr_alphabet)]
+        next_state_num_1 = PHI_1[(agent_1_belief, next_curr_alphabet)]
+        next_state_num_2 = PHI_2[(agent_2_belief, next_curr_alphabet)]
         
         # Q-learning update for both agents
         q_1[state_num_1, communicate_1] += alpha * (reward + gamma * np.max(q_1[next_state_num_1]) - q_1[state_num_1, communicate_1])
