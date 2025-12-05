@@ -32,7 +32,7 @@ PHI = {
 
 string_mode = "simulation" # options: "simulation", "half", "full"
 
-env = gym.make("CylicEnv2-v0", render_mode = None, string_mode=string_mode)
+env = gym.make("CyclicEnv2-v0", render_mode = None, string_mode=string_mode)
 
 test_count = 1000
 

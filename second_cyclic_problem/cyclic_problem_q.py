@@ -123,7 +123,7 @@ def q_training(env, epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1, print_proce
         
     return q_1, q_2
 
-q_training_env = gym.make('CylicEnv2-v0', render_mode=None, string_mode="training")
+q_training_env = gym.make('CyclicEnv2-v0', render_mode=None, string_mode="training")
 
 q_1, q_2 = q_training(q_training_env, epochs=1000, alpha=0.01, gamma=0.1, epsilon=0.1, print_process=True)
 

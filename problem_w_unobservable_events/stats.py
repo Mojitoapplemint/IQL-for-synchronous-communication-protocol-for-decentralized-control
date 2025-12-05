@@ -245,7 +245,7 @@ for index, row in successful_protocols.iterrows():
                 agent_id=1
                 
                 if agent_1_prev_row_num != -1 :
-                    return_value[0] += (0.5**t_1)*reward_1
+                    return_value[0] += (0.1**t_1)*reward_1
                     # return_value[0] += reward_1
                     t_1+=1
                     reward_1 = 0
@@ -277,7 +277,7 @@ for index, row in successful_protocols.iterrows():
                 agent_id=2
                 
                 if agent_2_prev_row_num != -1 :
-                    return_value[1] += (0.5**t_2)*reward_2
+                    return_value[1] += (0.1**t_2)*reward_2
                     # return_value[1] += reward_2
                     t_2+=1
                     reward_2 = 0
@@ -318,8 +318,8 @@ for index, row in successful_protocols.iterrows():
         
         # return_value[0] += reward_1
         # return_value[1] += reward_2
-        return_value[0] += (0.5**t_1)*reward_1
-        return_value[1] += (0.5**t_2)*reward_2
+        return_value[0] += (0.1**t_1)*reward_1
+        return_value[1] += (0.1**t_2)*reward_2
         
         if communicate_count[0]==0 and communicate_count[1]==0:
             print(protocol)

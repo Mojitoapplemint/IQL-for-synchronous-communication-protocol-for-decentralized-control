@@ -42,14 +42,14 @@ for i in range(session_count):
 
     string_mode = "training"
 
-    env = gym.make("CylicEnv2-v0", render_mode = None, string_mode=string_mode)
+    env = gym.make("CyclicEnv2-v0", render_mode = None, string_mode=string_mode)
     
     q_1, q_2 = q_training(env, epochs=2000, alpha=0.01, gamma=0.1, epsilon=0.1, print_process=False)
 
 
     string_mode = "simulation"
 
-    env = gym.make("CylicEnv2-v0", render_mode = None, string_mode=string_mode)
+    env = gym.make("CyclicEnv2-v0", render_mode = None, string_mode=string_mode)
 
     for i in range (test_count):
         # print(i)

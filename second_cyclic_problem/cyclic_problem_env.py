@@ -1,15 +1,13 @@
 import gymnasium as gym
 import numpy as np
-import sys
-sys.path.insert(0, './second_cyclic_problem')
-from second_cyclic_problem.word_generator import RegexWordGenerator
+from word_generator import RegexWordGenerator
 from IPython.display import clear_output
 import time
 import pandas as pd
 
 gym.register(
-    id="CylicEnv2-v0",
-    entry_point="second_cyclic_problem_env:CylicEnv",
+    id="CyclicEnv2-v0",
+    entry_point="cyclic_problem_env:CylicEnv",
 )
 
 class CylicEnv(gym.Env):
