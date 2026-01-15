@@ -7,24 +7,22 @@ sys.path.insert(0, './second_cyclic_problem')
 import cyclic_problem_env
 
 PHI = {
-    (False, 0 ):0,
-    (False, 1 ):1,
-    (False, 2 ):2,
-    (False, 3 ):3,
-    (False, 4 ):4,
-    (False, 5 ):5,
-    (False, 6 ):6,
-    (False, 7 ):7,
-    (False,-1 ):8,
-    (True, 0 ):9,
-    (True, 1 ):10,
-    (True, 2 ):11,
-    (True, 3 ):12,
-    (True, 4 ):13,
-    (True, 5 ):14,
-    (True, 6 ):15,
-    (True, 7 ):16,
-    (True,-1 ):17,
+    (False, 1 ):0,
+    (False, 2 ):1,
+    (False, 3 ):2,
+    (False, 4 ):3,
+    (False, 5 ):4,
+    (False, 6 ):5,
+    (False, 7 ):6,
+    (False,-1 ):7,
+    (True, 1 ):8,
+    (True, 2 ):9,
+    (True, 3 ):10,
+    (True, 4 ):11,
+    (True, 5 ):12,
+    (True, 6 ):13,
+    (True, 7 ):14,
+    (True,-1 ):15,
 }
 
 
@@ -71,7 +69,6 @@ def q_training(env, epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1, print_proce
                 
                 agent_id=1
                 agent_1_row_num = PHI[(agent_2_in_dead_state, agent_1_belief)]
-                
                 if agent_1_prev_row_num != -1 :
                     # Q-value update for agent 1
                     q_1[agent_1_prev_row_num][agent_1_communicate] += alpha * (reward_1 + gamma * np.max(q_1[agent_1_row_num]) - q_1[agent_1_prev_row_num][agent_1_communicate])
@@ -125,7 +122,7 @@ def q_training(env, epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1, print_proce
 
 q_training_env = gym.make('CyclicEnv2-v0', render_mode=None, string_mode="training")
 
-q_1, q_2 = q_training(q_training_env, epochs=1000, alpha=0.01, gamma=0.1, epsilon=0.1, print_process=True)
+q_1, q_2 = q_training(q_training_env, epochs=10000, alpha=0.01, gamma=0.1, epsilon=0.1, print_process=True)
 
 q_1_df = pd.DataFrame(q_1, columns=["do not communcate", "communicate"])
 q_2_df = pd.DataFrame(q_2, columns=["do not communcate", "communicate"])

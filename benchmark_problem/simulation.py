@@ -6,7 +6,7 @@ from benchmark_q import q_main
 
 env = gym.make('BenchmarkEnv-v0', render_mode=None)
 
-num_sessions=10000
+num_sessions=1000
 
 agent_1_communication_protocol=[[0,0], [0,0]]
 agent_2_communication_protocol=[[0,0], [0,0]]

@@ -176,7 +176,7 @@ def get_action(q_table, opponent_in_dead_state, row_num, epsilon):
     if opponent_in_dead_state:
         return 0
     if random.uniform(0, 1) < epsilon:
-        return np.argmin(q_table[row_num]) # Explore: choose the action that is not best
+        return random.randint(0, 1)  # Explore: random action
     else:
         return  np.argmax(q_table[row_num])  # Exploit: best action from Q-table
         
@@ -186,8 +186,6 @@ def q_training(env, epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1, print_proce
     q_2 = np.zeros((2*len(PHI_2), env.action_space.n))  
     
     for epoch in range(epochs):
-        
-        epsilon = max(0.01, epsilon * (1 - epoch / epochs))  # Decaying epsilon
         
         if (print_process and epoch%100==0):
                 print(str(100*epoch/epochs)+"%","done" , end="\r")
@@ -244,13 +242,16 @@ def q_training(env, epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1, print_proce
 
                 
                 if agent_2_prev_row_num != -1 :
+                    # print(agent_2_prev_row_num, agent_2_communicate, reward_2)
+                    
                     # Q-value update for agent 2
                     q_2[agent_2_prev_row_num][agent_2_communicate] += alpha * (reward_2 + gamma * np.max(q_2[agent_2_row_num]) - q_2[agent_2_prev_row_num][agent_2_communicate])
                     reward_2 = 0
                 
                 agent_2_communicate = get_action(q_2, agent_1_in_dead_state, agent_2_row_num, epsilon)
-                
+                # print(agent_2_row_num)
                 config, reward, terminated, truncated, info = env.step((agent_id, agent_2_communicate))
+                # print(reward)
                 
                 _, agent_1_belief, agent_2_belief = config
                 
@@ -274,7 +275,7 @@ def q_training(env, epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1, print_proce
 
 q_training_env = gym.make('UOEnv-v0', render_mode=None, string_mode="training")
 
-q_1, q_2 = q_training(q_training_env, epochs=100000, alpha=0.01, gamma=0.5, epsilon=0.1)
+q_1, q_2 = q_training(q_training_env, epochs=50000, alpha=0.01, gamma=0.5, epsilon=0.1, print_process=True)
 
 
 q_1_df = pd.DataFrame(q_1, columns=["do not communcate", "communicate"])

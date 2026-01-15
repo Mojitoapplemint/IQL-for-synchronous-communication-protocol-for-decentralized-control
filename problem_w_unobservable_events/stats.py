@@ -7,7 +7,8 @@ sys.path.insert(0, './problem_w_unobservable_events')
 import uo_problem_env
 from str_generator import StringGenerator
 
-
+A1_OBSERVABLE_EVENTS = ['a', 'c']
+A2_OBSERVABLE_EVENTS = ['x', 'y', 'z', 's', 't', 'r']
 
 PHI_1={
     (1, 'a'):0,
@@ -175,12 +176,34 @@ PHI_2={
     (-1,'r'):119,
 }
 
+m_bottom={
+    1:  "{1,3}",
+    2:  "{2,4,5,12,20,17}",
+    3:  "{6,21}",
+    4:  "{6,10}",
+    5:  "{2,4,8,13,18}",
+    6:  "{6}",
+    7:  "{7}",
+    8:  "{2,4,14}",
+    9:  "{9}",
+    10: "{10}",
+    11: "{11}",
+    12: "{2,4}",
+    13: "{5,12,17,20}",
+    14: "{14}",
+    15: "{15}",
+    16: "{16}",
+    17: "{8,13,18}",
+    19: "{19}",
+    21: "{21}",
+    -1: "{-1}",
+}
 
-regexgen = StringGenerator(max_star=5)
+# regexgen = StringGenerator(max_star=5)
 
-string_list = []
+# string_list = []
 
-string_list = regexgen.generate_stats_str()
+# string_list = regexgen.generate_stats_str()
 
 # df = pd.DataFrame(string_list, columns=["strings"])
 # df.to_csv("problem_w_unobservable_events/strings.csv", index=False)
@@ -190,21 +213,23 @@ string_list = regexgen.generate_stats_str()
 # string_list = df["strings"].to_list()
 
 
-successful_protocols = pd.read_csv("problem_w_unobservable_events/simulation_2_successful_protocols.csv")
-
-print(len(successful_protocols["Communication Protocols"].unique()))
+successful_protocols = pd.read_csv("problem_w_unobservable_events/exp_successful_protocols.csv")
 
 success_return_values_x = []
 success_return_values_y = []
 joint_return_values = []
 
 return_values = [0,0]
-communicate_counts = []
+communication_counts = []
+
+a1_protocol_list= []
+a2_protocol_list= []
 
 communication_dict={}
 
 for index, row in successful_protocols.iterrows():
     print(f"{index} / {len(successful_protocols)}", end="\r")
+    
     protocol = row["Communication Protocols"].replace("(","").replace(")","").split(", ")
     protocol = [int(x) for x in protocol]
     
@@ -215,7 +240,53 @@ for index, row in successful_protocols.iterrows():
     
     env = gym.make("UOEnv-v0", render_mode = None, string_mode="stats")
     
-    communicate_count = [0,0]
+    communication_count = [0,0,0,0]
+    
+    a1_communication_protocol={
+            1 :[0,0,0,0],
+            2 :[0,0,0,0],
+            3 :[0,0,0,0],
+            4 :[0,0,0,0],
+            5 :[0,0,0,0],
+            6 :[0,0,0,0],
+            7 :[0,0,0,0],
+            8 :[0,0,0,0],
+            9 :[0,0,0,0],
+            10:[0,0,0,0],
+            11:[0,0,0,0],
+            12:[0,0,0,0],
+            13:[0,0,0,0],
+            14:[0,0,0,0],
+            15:[0,0,0,0],
+            16:[0,0,0,0],
+            17:[0,0,0,0],
+            19:[0,0,0,0],
+            21:[0,0,0,0],
+            -1:[0,0,0,0],
+    }
+    
+    a2_communication_protocol={
+            1 :[0,0,0,0,0,0,0,0,0,0,0,0],
+            2 :[0,0,0,0,0,0,0,0,0,0,0,0],
+            3 :[0,0,0,0,0,0,0,0,0,0,0,0],
+            4 :[0,0,0,0,0,0,0,0,0,0,0,0],
+            5 :[0,0,0,0,0,0,0,0,0,0,0,0],
+            6 :[0,0,0,0,0,0,0,0,0,0,0,0],
+            7 :[0,0,0,0,0,0,0,0,0,0,0,0],
+            8 :[0,0,0,0,0,0,0,0,0,0,0,0],
+            9 :[0,0,0,0,0,0,0,0,0,0,0,0],
+            10:[0,0,0,0,0,0,0,0,0,0,0,0],
+            11:[0,0,0,0,0,0,0,0,0,0,0,0],
+            12:[0,0,0,0,0,0,0,0,0,0,0,0],
+            13:[0,0,0,0,0,0,0,0,0,0,0,0],
+            14:[0,0,0,0,0,0,0,0,0,0,0,0],
+            15:[0,0,0,0,0,0,0,0,0,0,0,0],
+            16:[0,0,0,0,0,0,0,0,0,0,0,0],
+            17:[0,0,0,0,0,0,0,0,0,0,0,0],
+            19:[0,0,0,0,0,0,0,0,0,0,0,0],
+            21:[0,0,0,0,0,0,0,0,0,0,0,0],
+            -1:[0,0,0,0,0,0,0,0,0,0,0,0],
+    }
     
     for i in range (1000):
         terminated = False
@@ -257,7 +328,11 @@ for index, row in successful_protocols.iterrows():
                     agent_1_communicate = q_1[agent_1_row_num]
                     
                 if agent_1_communicate ==1:
-                    communicate_count[0] += 1 
+                    communication_count[0] += 1 
+                    a1_communication_protocol[agent_1_belief][A1_OBSERVABLE_EVENTS.index(curr_symbol)*2] += 1
+                else:
+                    communication_count[1] += 1
+                    a1_communication_protocol[agent_1_belief][A1_OBSERVABLE_EVENTS.index(curr_symbol)*2+1] += 1
 
                 
                 config, reward, terminated, truncated, info = env.step((agent_id, agent_1_communicate))
@@ -293,11 +368,13 @@ for index, row in successful_protocols.iterrows():
                 
                 
                 if agent_2_communicate ==1:
-                    communicate_count[1] += 1
+                    communication_count[2] += 1
                     communication_dict[curr_symbol][1] += 1
+                    a2_communication_protocol[agent_2_belief][A2_OBSERVABLE_EVENTS.index(curr_symbol)*2] += 1
                 else:
+                    communication_count[3] += 1
                     communication_dict[curr_symbol][0] += 1
-
+                    a2_communication_protocol[agent_2_belief][A2_OBSERVABLE_EVENTS.index(curr_symbol)*2+1] += 1
                 
                 
                 config, reward, terminated, truncated, info = env.step((agent_id, agent_2_communicate))
@@ -321,18 +398,19 @@ for index, row in successful_protocols.iterrows():
         return_value[0] += (0.1**t_1)*reward_1
         return_value[1] += (0.1**t_2)*reward_2
         
-        if communicate_count[0]==0 and communicate_count[1]==0:
+        if communication_count[0]==0 and communication_count[1]==0:
             print(protocol)
-        
-    communicate_counts.append(communicate_count)
+    
+    a1_protocol_list.append(a1_communication_protocol)
+    a2_protocol_list.append(a2_communication_protocol)
+    
+    communication_counts.append(communication_count)
     
     return_value[0] = np.round(return_value[0]/1000, 2)
     return_value[1] = np.round(return_value[1]/1000, 2)
     success_return_values_x.append(return_value[0])
     success_return_values_y.append(return_value[1])
     joint_return_values.append((return_value[0], return_value[1]))
-    
-# print(communicate_counts)
 
 print(pd.DataFrame(joint_return_values, columns=['Agent 1 Return', 'Agent 2 Return']).value_counts())
  
@@ -343,11 +421,14 @@ plt.ylabel('Agent 2 Average Return')
 plt.title('Return Values of Communication Protocols')
 plt.legend()
 plt.grid(True)
-plt.savefig('problem_w_unobservable_events/stats_successful_protocols_returns.png')
+plt.savefig('problem_w_unobservable_events/exp_stats_successful_protocols_returns.png')
 plt.show()
 
-communicate_counts = pd.DataFrame(communicate_counts, columns=['Agent 1 Communicate Count', 'Agent 2 Communicate Count'])
+communication_counts = pd.DataFrame(communication_counts, columns=['Agent 1 Communicate', 'Agent 1 Not Communicate', 'Agent 2 Communicate', 'Agent 2 Not Communicate'])
 
-print(communicate_counts.value_counts())
+print(communication_counts)
 
 print(communication_dict)
+
+successful_protocols = pd.read_csv("problem_w_unobservable_events/exp_2_successful_protocols.csv")
+

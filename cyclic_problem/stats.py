@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from str_generator import RegexStringGenerator
+from experiment.str_generator import RegexStringGenerator
 import gymnasium as gym
 import sys
 sys.path.insert(0, './cyclic_problem')

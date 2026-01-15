@@ -43,16 +43,9 @@ class RegexWordGenerator:
         n = random.randint(1, self.max_star)
         
         for i in range(n):
-            n2 = random.randint(1, self.max_star)
-            for i in range(n2):
-                if choice == 0:
-                    word += 'abc'
-                else:
-                    word += 'bac'
-            
             choice = random.choice([0,1])
             if choice == 0:
-                word += 'absc'
+                word += 'abc'
             else:
                 word += 'bac'
         

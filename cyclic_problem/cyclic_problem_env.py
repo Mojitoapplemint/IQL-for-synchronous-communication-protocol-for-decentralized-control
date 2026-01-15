@@ -1,6 +1,6 @@
 import gymnasium as gym
 import numpy as np
-from str_generator import RegexStringGenerator
+from experiment.str_generator import RegexStringGenerator
 from IPython.display import clear_output
 import time
 import pandas as pd

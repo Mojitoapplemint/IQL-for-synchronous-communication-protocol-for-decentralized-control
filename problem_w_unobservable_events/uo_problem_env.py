@@ -11,7 +11,7 @@ gym.register(
 )
 
 class UOEnv(gym.Env):
-    COMMUNICATE_COST = 15
+    COMMUNICATE_COST = 10
     
     # symbol replacement
     #    a1 -> a,   c1 -> c
@@ -196,32 +196,24 @@ class UOEnv(gym.Env):
         
         curr_symbol=self.string[self.string_index]
         
-        # reward assignment
-        if (self.agent_1_belief != self.agent_0_state) and (self.agent_2_belief != self.agent_0_state):
-            reward -= 100
-        
-        if self.agent_1_belief == -1 and self.agent_2_belief == -1:
-            reward -=500
-            terminated = True
-        elif self.agent_0_state == 11 and not(self.agent_1_belief == 11 or self.agent_2_belief == 11):
-            # Penalized configuration condition 1-1
-            reward -=500
-            terminated = True
-        elif self.agent_0_state == 9 and not(self.agent_1_belief == 9 or self.agent_2_belief == 9):
-            # Penalized configuration condition 1-2
-            reward -=500
-            terminated = True
-        elif self.agent_0_state != 11 and self.agent_1_belief in [11,-1] and self.agent_2_belief in [11,-1]:
-            # Penalized configuration condition 2-1
-            reward -=500
-            terminated = True
-        elif self.agent_0_state != 9 and self.agent_1_belief in [9,-1] and self.agent_2_belief in [9,-1]:
-            # Penalized configuration condition 2-2
-            reward -=500
+        # reward assignment        
+        # if (self.agent_1_belief != self.agent_0_state) and (self.agent_2_belief != self.agent_0_state):
+        #     reward -= 15
+
+
+        # if self.agent_0_state == 11 and  self.agent_1_belief ==-1 and self.agent_2_belief ==-1:
+            
+        #     reward -=500
+        #     terminated = True
+
+        if self.agent_0_state == 9 and  self.agent_1_belief ==-1 and self.agent_2_belief ==-1:
+            
+            reward -=100000
             terminated = True
         elif self.string[self.string_index]=="$":
             terminated = True
         
+
         
         config = (self.agent_0_state, self.agent_1_belief, self.agent_2_belief)
         info = {"input_alphabet":self.string[self.string_index], "string":self.string}

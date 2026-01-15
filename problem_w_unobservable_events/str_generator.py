@@ -19,7 +19,7 @@ class StringGenerator:
         """
         
         # Choose one of the 5 alternatives randomly
-        choice = random.randint(1, 7)
+        choice = random.randint(1, 10)
         
         if choice == 1:
             # Pattern: axac
@@ -44,7 +44,6 @@ class StringGenerator:
         
         else:  # choice == 6
             # Pattern: a(xsa+ayta+aazra)(xsa+ayta+aazra)*axc
-            
             # First required group
             first_group = random.choice(["xsa", "ayta", "aazra"])
             

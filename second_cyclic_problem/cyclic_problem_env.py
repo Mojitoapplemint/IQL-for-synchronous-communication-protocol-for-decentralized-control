@@ -52,7 +52,7 @@ class CylicEnv(gym.Env):
        -1:{'s':-1, 'a':-1, 'b':-1},
     }
     
-    metadata = {'render_modes': ['human'], 'string_modes': ['training', 'simulation', 'stats']}
+    metadata = {'render_modes': ['human'], 'string_modes': ['training', 'simulation', 'stats', 'test']}
     
     def __init__(self, string_mode="full", render_mode=None, max_star=3):
         self.string_generator = RegexWordGenerator(max_star=max_star)
@@ -101,8 +101,8 @@ class CylicEnv(gym.Env):
         return np.array(config, dtype=np.int32), info
         
     def step(self, action):
-        if self.string_mode == "simulation":
-            return self.simultaion_step(action)
+        if self.string_mode == "simulation" or self.string_mode == "stats":
+            return self.simulation_step(action)
         
         reward = 0
         agent_id, communicate = action
@@ -147,28 +147,16 @@ class CylicEnv(gym.Env):
             curr_symbol=self.string[self.string_index]
             
         # Penalty Assignment
-        if self.agent_1_belief == -1 and self.agent_2_belief == -1:
-            # terminate current episode as soon as both agents are in dead state; shortening training time
+
+        if self.agent_0_state ==4 and self.agent_1_belief == -1 and self.agent_2_belief == -1:
+            reward -= 100
             terminated = True
-            reward -= 200
-        if self.agent_0_state ==4 and not(self.agent_1_belief == 4 or self.agent_2_belief == 4):
-            # Penalized configuration Condition 1
-            reward -= 200
-            terminated = True
-        elif self.agent_0_state ==7 and not(self.agent_1_belief == 7 or self.agent_2_belief == 7):
-            # Penalized configuration Condition 1
-            reward -= 200
-            terminated = True
-        elif self.agent_0_state != 4 and self.agent_1_belief in [4,-1] and self.agent_2_belief in [4, -1]:
-            # Penalized configuration Condition 2
-            reward -=  200
-            terminated = True
-        elif self.agent_0_state != 7 and self.agent_1_belief in [7,-1] and self.agent_2_belief in [7, -1]:
-            # Penalized configuration Condition 2
-            reward -=  200
+        if self.agent_0_state ==7 and self.agent_1_belief == -1 and self.agent_2_belief == -1:
+            reward -=  100
             terminated = True
         elif self.string[self.string_index]=="$":
             terminated = True
+
         
         config = (self.agent_0_state, self.agent_1_belief, self.agent_2_belief)
         
@@ -181,11 +169,12 @@ class CylicEnv(gym.Env):
         print(self.agent_0_state,self.agent_1_belief, self.agent_2_belief)
         print(f"Config: <{self.agent_0_state}:{self.m_bottom[self.agent_0_state]}, {self.agent_1_belief}:{self.m_bottom[self.agent_1_belief]}, {self.agent_2_belief}:{self.m_bottom[self.agent_2_belief]}>")
          
-    def simultaion_step(self, action):
+    def simulation_step(self, action):
         # Note: In simulation mode, we still use variable "agent_0_state", but this refers to the actual global state.
         agent_id, communicate = action
         terminated = False
         simulation_result = False # whether the simulation ends in success or failure
+        reward = 0
         
         curr_symbol=self.string[self.string_index]
         self.agent_0_state = self.global_transitions[self.agent_0_state].get(curr_symbol)
@@ -193,11 +182,13 @@ class CylicEnv(gym.Env):
             self.agent_1_belief = self.bottom_transitions[self.agent_1_belief].get(curr_symbol)
             if communicate == 1:
                 self.communication_count+=1
+                reward-=self.COMMUNICATE_COST
                 self.agent_2_belief = self.bottom_transitions[self.agent_2_belief].get(curr_symbol)
         elif agent_id==2:
             self.agent_2_belief = self.bottom_transitions[self.agent_2_belief].get(curr_symbol)
             if communicate == 1:
                 self.communication_count+=1
+                reward-=self.COMMUNICATE_COST
                 self.agent_1_belief = self.bottom_transitions[self.agent_1_belief].get(curr_symbol)
         else:
             raise ValueError("Invalid agent_id. Must be 1 or 2.")
@@ -218,7 +209,7 @@ class CylicEnv(gym.Env):
         
             info={"input_alphabet":self.string[self.string_index]}
         
-            return np.array(config, dtype=np.int32), 0, terminated, simulation_result, info
+            return np.array(config, dtype=np.int32), reward-100, terminated, simulation_result, info
         
         if curr_symbol=='s':
             if self.agent_0_state ==6:
@@ -265,12 +256,14 @@ class CylicEnv(gym.Env):
         if curr_symbol=="$":
             terminated = True
         
+
+        
         
         config = (self.agent_0_state, self.agent_1_belief, self.agent_2_belief)
         
         info={"input_alphabet":self.string[self.string_index]}
         
-        return np.array(config, dtype=np.int32), 0, terminated, simulation_result, info
+        return np.array(config, dtype=np.int32), reward, terminated, simulation_result, info
         
         
     
@@ -294,7 +287,7 @@ class CylicEnv(gym.Env):
                 f"    ------->| {a[0]} |<------- \n"
                  "    |       +---+       | \n"
                  "    |        / \        | \n"
-                 "    |     a /   \ b     | \n"
+                 "    |     b /   \ a     | \n"
                  "    |      V     V      | \n"
                  "    |   +-5-+   +-2-+   | \n"
                 f"  c |   | {a[4]} |   | {a[1]} |   | c \n"
@@ -311,5 +304,5 @@ class CylicEnv(gym.Env):
                 f"        | {a[6]} |   | {a[3]} | \n"
                  "        +---+   +---+ \n"
                 )
-        time.sleep(1)
+        time.sleep(0.2)
         print("" , end="\r")
