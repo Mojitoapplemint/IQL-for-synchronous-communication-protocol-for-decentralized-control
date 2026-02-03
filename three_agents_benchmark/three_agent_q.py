@@ -27,82 +27,58 @@ S = {
     (14,False, False):13,
     (15,False, False):14,
     (16,False, False):15,
-    (17,False, False):16,
-    (18,False, False):17,
-    (19,False, False):18,
-    (20,False, False):19,
-    (21,False, False):20,
-    (22,False, False):21,
-    (-1,False, False):22,
-    (1, True,  False):23,
-    (2, True,  False):24,
-    (3, True,  False):25,
-    (4, True,  False):26,
-    (5, True,  False):27,
-    (6, True,  False):28,
-    (7, True,  False):29,
-    (8, True,  False):30,
-    (9, True,  False):31,
-    (10,True,  False):32,
-    (11,True,  False):33,
-    (12,True,  False):34,
-    (13,True,  False):35,
-    (14,True,  False):36,
-    (15,True,  False):37,
-    (16,True,  False):38,
-    (17,True,  False):39,
-    (18,True,  False):40,
-    (19,True,  False):41,
-    (20,True,  False):42,
-    (21,True,  False):43,
-    (22,True,  False):44,
-    (-1,True,  False):45,
-    (1, False, True):46,
-    (2, False, True):47,
-    (3, False, True):48,
-    (4, False, True):49,
-    (5, False, True):50,
-    (6, False, True):51,
-    (7, False, True):52,
-    (8, False, True):53,
-    (9, False, True):54,
-    (10,False, True):55,
-    (11,False, True):56,
-    (12,False, True):57,
-    (13,False, True):58,
-    (14,False, True):59,
-    (15,False, True):60,
-    (16,False, True):61,
-    (17,False, True):62,
-    (18,False, True):63,
-    (19,False, True):64,
-    (20,False, True):65,
-    (21,False, True):66,
-    (22,False, True):67,
-    (-1,False, True):68,
-    (1, True,  True):69,
-    (2, True,  True):70,
-    (3, True,  True):71,
-    (4, True,  True):72,
-    (5, True,  True):73,
-    (6, True,  True):74,
-    (7, True,  True):75,
-    (8, True,  True):76,
-    (9, True,  True):77,
-    (10,True,  True):78,
-    (11,True,  True):79,
-    (12,True,  True):80,
-    (13,True,  True):81,
-    (14,True,  True):82,
-    (15,True,  True):83,
-    (16,True,  True):84,
-    (17,True,  True):85,
-    (18,True,  True):86,
-    (19,True,  True):87,
-    (20,True,  True):88,
-    (21,True,  True):89,
-    (22,True,  True):90,
-    (-1,True,  True):91,
+    (-1,False, False):16,
+    (1, True,  False):17,
+    (2, True,  False):18,
+    (3, True,  False):19,
+    (4, True,  False):20,
+    (5, True,  False):21,
+    (6, True,  False):22,
+    (7, True,  False):23,
+    (8, True,  False):24,
+    (9, True,  False):25,
+    (10,True,  False):26,
+    (11,True,  False):27,
+    (12,True,  False):28,
+    (13,True,  False):29,
+    (14,True,  False):30,
+    (15,True,  False):31,
+    (16,True,  False):32,
+    (-1,True,  False):33,
+    (1, False, True):34,
+    (2, False, True):35,
+    (3, False, True):36,
+    (4, False, True):37,
+    (5, False, True):38,
+    (6, False, True):39,
+    (7, False, True):40,
+    (8, False, True):41,
+    (9, False, True):42,
+    (10,False, True):43,
+    (11,False, True):44,
+    (12,False, True):45,
+    (13,False, True):46,
+    (14,False, True):47,
+    (15,False, True):48,
+    (16,False, True):49,
+    (-1,False, True):50,
+    (1, True,  True):51,
+    (2, True,  True):52,
+    (3, True,  True):53,
+    (4, True,  True):54,
+    (5, True,  True):55,
+    (6, True,  True):56,
+    (7, True,  True):57,
+    (8, True,  True):58,
+    (9, True,  True):59,
+    (10,True,  True):60,
+    (11,True,  True):61,
+    (12,True,  True):62,
+    (13,True,  True):63,
+    (14,True,  True):64,
+    (15,True,  True):65,
+    (16,True,  True):66,
+    (-1,True,  True):67,
 }
 
 ACTIONS = {
@@ -145,6 +121,8 @@ def q_training(env, epochs=10000, alpha = 0.1, gamma=0.1, epsilon=0.1, print_pro
         config, info = env.reset()
         
         curr_event=info['curr_event']
+        word = info['string']
+        print(word)
         
         _, agent_1_belief, agent_2_belief, agent_3_belief = config
         
@@ -189,7 +167,7 @@ def q_training(env, epochs=10000, alpha = 0.1, gamma=0.1, epsilon=0.1, print_pro
                 
                 agent_3_in_dead_state = agent_3_belief == -1
                 
-                reward_1 += np.sum(reward)
+                reward_1 += comm_cost
                 
                 curr_event=info['curr_event']
                 
@@ -217,7 +195,7 @@ def q_training(env, epochs=10000, alpha = 0.1, gamma=0.1, epsilon=0.1, print_pro
                 
                 agent_3_in_dead_state = agent_3_belief == -1
                 
-                reward_2 += np.sum(reward)
+                reward_2 += comm_cost
                 
                 curr_event=info['curr_event']
                 
@@ -245,38 +223,30 @@ def q_training(env, epochs=10000, alpha = 0.1, gamma=0.1, epsilon=0.1, print_pro
                 
                 agent_2_in_dead_state = agent_2_belief == -1
                 
-                reward_3 += np.sum(reward)
+                reward_3 += comm_cost
                 
                 curr_event=info['curr_event']
                 
                 prev_s_3 = s_3
-        
-        if agent_id == 1:
-            reward_2 += penalty
-            reward_3 += penalty
-        elif agent_id == 2:
-            reward_1 += penalty
-            reward_3 += penalty
-        elif agent_id == 3:
-            reward_1 += penalty
-            reward_2 += penalty
     
-        # print(reward_1, reward_2, reward_3)
     
         # Final Q-value update at the end of the episode
         if a1_action is not None:
+            reward_1 += penalty
             q_1[prev_s_1][a1_action] += alpha * (reward_1 + gamma * 0 - q_1[prev_s_1][a1_action])
     
         if a2_action is not None:
+            reward_2 += penalty
             q_2[prev_s_2][a2_action] += alpha * (reward_2 + gamma * 0 - q_2[prev_s_2][a2_action])
     
         if a3_action is not None:
+            reward_3 += penalty
             q_3[prev_s_3][a3_action] += alpha * (reward_3 + gamma * 0 - q_3[prev_s_3][a3_action])
     
     return q_1, q_2, q_3
 
-env = gym.make('ThreeAgentsEnv-v0', render_mode=None, string_mode="training")
-q_1, q_2, q_3 = q_training(env, epochs=10000, alpha = 0.001, gamma=0.5, epsilon=0.1, print_process=True)
+env = gym.make('ThreeAgentsEnv-v0', render_mode="human", string_mode="training")
+q_1, q_2, q_3 = q_training(env, epochs=1, alpha = 0.01, gamma=0.5, epsilon=0.1, print_process=False)
 
 q_1_df = pd.DataFrame(q_1, columns=["[X,X]", "[X,O]", "[O,X]", "[O,O]"])    
 q_2_df = pd.DataFrame(q_2, columns=["[X,X]", "[X,O]", "[O,X]", "[O,O]"])    
