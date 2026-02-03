@@ -11,7 +11,7 @@ gym.register(
 )
 
 class ThreeAgentsEnv(gym.Env):
-    COMMUNICATE_COST = 10
+    COMMUNICATE_COST = 20
     
     m_L_transitions = {
         1: {'a':2, 'b':7, 'c':12},
@@ -71,7 +71,12 @@ class ThreeAgentsEnv(gym.Env):
         
         self.string_mode = string_mode
         self.render_mode = render_mode
+        
         self.training_word_selection = random.randint(0, 5)
+        # if self.string_mode == 'training':
+        #     self.training_word_selection = random.randint(0, 5)
+        # else:
+        #     self.training_word_selection = 0
     
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
@@ -197,9 +202,17 @@ class ThreeAgentsEnv(gym.Env):
         terminated = False
         simulation_result = False
         
-        curr_event = self.input_word[self.training_word_index]
+        vector_label = [0,0,0,0]
         
-        vector_label = [curr_event if communicate[i]==1 else '' for i in range(4)]
+        if agent_id == 1:
+            vector_label = [1,1,communicate[0], communicate[1]]
+        if agent_id == 2:
+            vector_label = [1,communicate[0], 1, communicate[1]]
+        if agent_id == 3:
+            vector_label = [1,communicate[0], communicate[1], 1]
+        
+        curr_event = self.input_word[self.training_word_index]
+        vector_label = [curr_event if vector_label[i]==1 else '' for i in range(4)]
         
         self.system_state = self.m_L_transitions[self.system_state][vector_label[0]]
         
@@ -209,7 +222,8 @@ class ThreeAgentsEnv(gym.Env):
         
         self.agent_3_state = self.m_L_bot_transitions[self.agent_3_state][vector_label[3]]
         
-        communication_cost = sum(communicate) * self.COMMUNICATE_COST
+        communication_cost = -1* sum(communicate) * self.COMMUNICATE_COST
+        
         
         if self.render_mode == 'human' :
             temp = [1,2,3]
@@ -217,8 +231,8 @@ class ThreeAgentsEnv(gym.Env):
             
             temp.remove(agent_id)
                         
-            receive_1 = communicate[temp[0]]
-            receive_2 = communicate[temp[1]]
+            receive_1 = vector_label[temp[0]]
+            receive_2 = vector_label[temp[1]]
 
             self.render()
             print(f"Agent {agent_id} {'communicated' if receive_1 else 'did not communicate'} '{events[agent_id-1]}' to Agent {temp[0]}")

@@ -112,7 +112,6 @@ ACTIONS = {
     3:[1,1],
 }
 
-
 def get_action(q_table, agent_j_in_dead_state, agent_k_in_dead_state, row_num, epsilon):
     
     # Both agents are in dead state, only action [0,0] is possible
@@ -261,7 +260,9 @@ def q_training(env, epochs=10000, alpha = 0.1, gamma=0.1, epsilon=0.1, print_pro
         elif agent_id == 3:
             reward_1 += penalty
             reward_2 += penalty
-            
+    
+        # print(reward_1, reward_2, reward_3)
+    
         # Final Q-value update at the end of the episode
         if a1_action is not None:
             q_1[prev_s_1][a1_action] += alpha * (reward_1 + gamma * 0 - q_1[prev_s_1][a1_action])
@@ -274,13 +275,13 @@ def q_training(env, epochs=10000, alpha = 0.1, gamma=0.1, epsilon=0.1, print_pro
     
     return q_1, q_2, q_3
 
-# env = gym.make('ThreeAgentsEnv-v0', render_mode="human", string_mode="training")
-# q_1, q_2, q_3 = q_training(env, epochs=10, alpha = 0.1, gamma=0.9, epsilon=0.1, print_process=True)
+env = gym.make('ThreeAgentsEnv-v0', render_mode=None, string_mode="training")
+q_1, q_2, q_3 = q_training(env, epochs=10000, alpha = 0.001, gamma=0.5, epsilon=0.1, print_process=True)
 
-# q_1_df = pd.DataFrame(q_1, columns=["[X,X]", "[X,O]", "[O,X]", "[O,O]"])    
-# q_2_df = pd.DataFrame(q_2, columns=["[X,X]", "[X,O]", "[O,X]", "[O,O]"])    
-# q_3_df = pd.DataFrame(q_3, columns=["[X,X]", "[X,O]", "[O,X]", "[O,O]"])  
+q_1_df = pd.DataFrame(q_1, columns=["[X,X]", "[X,O]", "[O,X]", "[O,O]"])    
+q_2_df = pd.DataFrame(q_2, columns=["[X,X]", "[X,O]", "[O,X]", "[O,O]"])    
+q_3_df = pd.DataFrame(q_3, columns=["[X,X]", "[X,O]", "[O,X]", "[O,O]"])  
   
-# q_1_df.to_csv(f"{FOLDER_NAME}/three_agents_q1.csv", index=False)
-# q_2_df.to_csv(f"{FOLDER_NAME}/three_agents_q2.csv", index=False)
-# q_3_df.to_csv(f"{FOLDER_NAME}/three_agents_q3.csv", index=False)
+q_1_df.to_csv(f"{FOLDER_NAME}/three_agents_q1.csv", index=False)
+q_2_df.to_csv(f"{FOLDER_NAME}/three_agents_q2.csv", index=False)
+q_3_df.to_csv(f"{FOLDER_NAME}/three_agents_q3.csv", index=False)
