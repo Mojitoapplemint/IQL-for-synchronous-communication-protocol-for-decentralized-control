@@ -11,7 +11,7 @@ gym.register(
 )
 
 class ThreeAgentsEnv(gym.Env):
-    COMMUNICATE_COST = 20
+    COMMUNICATE_COST = 30
     
     m_L_transitions = {
         1: {'a':2, 'b':7, 'c':12},

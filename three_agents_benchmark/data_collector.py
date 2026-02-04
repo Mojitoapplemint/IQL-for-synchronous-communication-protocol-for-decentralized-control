@@ -27,14 +27,14 @@ def get_action(q_table, agent_j_in_dead_state, agent_k_in_dead_state, row_num):
 
 success_dict = {}
 result_dict = {}
-session_count = 1
+session_count = 1000
 
 for i in range(session_count):
     print(str(100*i/session_count)+"%","done" , end="\r")
     
     env = gym.make('ThreeAgentsEnv-v0', render_mode=None, string_mode="training")
     
-    q_1, q_2, q_3 = q_training(env, epochs=1000, alpha=0.001, gamma=0.5, epsilon=0.1)
+    q_1, q_2, q_3 = q_training(env, epochs=20000, alpha=0.001, gamma=0.1, epsilon=0.1)
     
     env = gym.make('ThreeAgentsEnv-v0', render_mode=None, string_mode="simulation")
     
@@ -134,6 +134,6 @@ for key in result_dict:
     print(f"<{key[0]}, {key[1]}, {key[2]}, {key[3]}> => Count: {result_dict[key]}")
 
 # Save successful protocols to CSV
-successful_protocols_df = pd.DataFrame(list(success_dict.items()), columns=['Protocol', 'Success Count'])
+successful_protocols_df = pd.DataFrame(list(success_dict.items()), columns=['Protocol', 'Counts'])
 successful_protocols_df.to_csv(f'{FOLDER_NAME}/successful_protocols.csv', index=False)
 

@@ -206,16 +206,16 @@ for index, row in successful_protocols.iterrows():
                 
                 a3_return += communication_cost
         
-            print("reward:", reward)
+            # print("reward:", reward)
         
         communication_counts.get(input_word).append(communication_count)
         
         if not simulation_result:
             print("\nError: Simulation failed unexpectedly.")
             break
-        print(a1_action, a2_action, a3_action)
-        print(a1_return, a2_return, a3_return)
-        print(communication_count)
+        # print(a1_action, a2_action, a3_action)
+        # print(a1_return, a2_return, a3_return)
+        # print(communication_count)
         
         a1_return += penalty
         a2_return += penalty
@@ -232,9 +232,9 @@ for index, row in successful_protocols.iterrows():
     return_values[2] = round(return_values[2], 2)
     
     if returns_dict.get(tuple(return_values)) is None:
-        returns_dict[tuple(return_values)] = 1
+        returns_dict[tuple(return_values)] = row["Counts"]
     else:
-        returns_dict[tuple(return_values)] += 1
+        returns_dict[tuple(return_values)] += row["Counts"]
     
     a1_protocol_list.append(a1_communication_protocol)
     a2_protocol_list.append(a2_communication_protocol)
