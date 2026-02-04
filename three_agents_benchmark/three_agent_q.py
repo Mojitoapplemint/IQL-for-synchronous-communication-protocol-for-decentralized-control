@@ -189,7 +189,7 @@ def q_training(env, epochs=10000, alpha = 0.1, gamma=0.1, epsilon=0.1, print_pro
                 
                 agent_3_in_dead_state = agent_3_belief == -1
                 
-                reward_1 += np.sum(reward)
+                reward_1 += comm_cost
                 
                 curr_event=info['curr_event']
                 
@@ -217,7 +217,7 @@ def q_training(env, epochs=10000, alpha = 0.1, gamma=0.1, epsilon=0.1, print_pro
                 
                 agent_3_in_dead_state = agent_3_belief == -1
                 
-                reward_2 += np.sum(reward)
+                reward_2 += comm_cost
                 
                 curr_event=info['curr_event']
                 
@@ -245,43 +245,39 @@ def q_training(env, epochs=10000, alpha = 0.1, gamma=0.1, epsilon=0.1, print_pro
                 
                 agent_2_in_dead_state = agent_2_belief == -1
                 
-                reward_3 += np.sum(reward)
+                reward_3 += comm_cost
                 
                 curr_event=info['curr_event']
                 
                 prev_s_3 = s_3
+    
         
-        if agent_id == 1:
-            reward_2 += penalty
-            reward_3 += penalty
-        elif agent_id == 2:
-            reward_1 += penalty
-            reward_3 += penalty
-        elif agent_id == 3:
-            reward_1 += penalty
-            reward_2 += penalty
-    
-        # print(reward_1, reward_2, reward_3)
-    
-        # Final Q-value update at the end of the episode
+        # Q-value update for agents who took action
         if a1_action is not None:
+            reward_1 += penalty
             q_1[prev_s_1][a1_action] += alpha * (reward_1 + gamma * 0 - q_1[prev_s_1][a1_action])
-    
+
         if a2_action is not None:
+            reward_2 += penalty
             q_2[prev_s_2][a2_action] += alpha * (reward_2 + gamma * 0 - q_2[prev_s_2][a2_action])
-    
+
         if a3_action is not None:
+            reward_3 += penalty
             q_3[prev_s_3][a3_action] += alpha * (reward_3 + gamma * 0 - q_3[prev_s_3][a3_action])
+        
+        # print()
+        # print(a1_action, a2_action, a3_action)
+        # print(reward_1, reward_2, reward_3)
     
     return q_1, q_2, q_3
 
-env = gym.make('ThreeAgentsEnv-v0', render_mode=None, string_mode="training")
-q_1, q_2, q_3 = q_training(env, epochs=10000, alpha = 0.001, gamma=0.5, epsilon=0.1, print_process=True)
+# env = gym.make('ThreeAgentsEnv-v0', render_mode=None, string_mode="training")
+# q_1, q_2, q_3 = q_training(env, epochs=10000, alpha = 0.001, gamma=0.5, epsilon=0.1, print_process=True)
 
-q_1_df = pd.DataFrame(q_1, columns=["[X,X]", "[X,O]", "[O,X]", "[O,O]"])    
-q_2_df = pd.DataFrame(q_2, columns=["[X,X]", "[X,O]", "[O,X]", "[O,O]"])    
-q_3_df = pd.DataFrame(q_3, columns=["[X,X]", "[X,O]", "[O,X]", "[O,O]"])  
+# q_1_df = pd.DataFrame(q_1, columns=["[X,X]", "[X,O]", "[O,X]", "[O,O]"])    
+# q_2_df = pd.DataFrame(q_2, columns=["[X,X]", "[X,O]", "[O,X]", "[O,O]"])    
+# q_3_df = pd.DataFrame(q_3, columns=["[X,X]", "[X,O]", "[O,X]", "[O,O]"])  
   
-q_1_df.to_csv(f"{FOLDER_NAME}/three_agents_q1.csv", index=False)
-q_2_df.to_csv(f"{FOLDER_NAME}/three_agents_q2.csv", index=False)
-q_3_df.to_csv(f"{FOLDER_NAME}/three_agents_q3.csv", index=False)
+# q_1_df.to_csv(f"{FOLDER_NAME}/three_agents_q1.csv", index=False)
+# q_2_df.to_csv(f"{FOLDER_NAME}/three_agents_q2.csv", index=False)
+# q_3_df.to_csv(f"{FOLDER_NAME}/three_agents_q3.csv", index=False)

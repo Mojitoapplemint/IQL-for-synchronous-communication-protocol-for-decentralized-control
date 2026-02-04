@@ -108,10 +108,15 @@ class ThreeAgentsEnv(gym.Env):
         return config, info
     
     def step(self, action):
+        agent_id, communicate = action
+        
+        if len(communicate) !=2:
+            raise ValueError("Communication action must be a list of two binary values.")
+        
         if self.string_mode == 'simulation':
             return self.simulation_step(action)
         reward = 0
-        agent_id, communicate = action
+        
         terminated = False
         
         # print(communicate)
@@ -191,7 +196,7 @@ class ThreeAgentsEnv(gym.Env):
 
         info = {'curr_event': curr_event, "string": self.input_word}
         
-        return np.array(config, dtype=np.int32), (reward, communication_cost), terminated, False, info
+        return np.array(config, dtype=np.int32), (communication_cost, reward), terminated, False, info
 
     def render(self):
         print(f"Resulting V state: ({self.system_state}, {self.agent_1_state}, {self.agent_2_state}, {self.agent_3_state})")
@@ -276,6 +281,8 @@ class ThreeAgentsEnv(gym.Env):
             
         if curr_event == '$':
             terminated = True
+            if not simulation_result:
+                reward -= 100
         
         
         config = (self.system_state, self.agent_1_state, self.agent_2_state, self.agent_3_state)
@@ -284,7 +291,7 @@ class ThreeAgentsEnv(gym.Env):
 
         info = {'curr_event': curr_event, "string": self.input_word}
         
-        return np.array(config, dtype=np.int32), (reward, communication_cost), terminated, simulation_result, info
+        return np.array(config, dtype=np.int32), (communication_cost, reward), terminated, simulation_result, info
 
     
     def simulate(self, agent_1_disable=False, agent_2_disable=False, agent_3_disable=False):
