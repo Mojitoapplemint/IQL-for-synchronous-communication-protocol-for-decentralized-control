@@ -27,7 +27,7 @@ def get_action(q_table, agent_j_in_dead_state, agent_k_in_dead_state, row_num):
 
 success_dict = {}
 result_dict = {}
-session_count = 1000
+session_count = 100
 
 for i in range(session_count):
     print(str(100*i/session_count)+"%","done" , end="\r")

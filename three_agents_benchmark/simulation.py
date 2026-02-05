@@ -7,9 +7,13 @@ warnings.filterwarnings("ignore", category=UserWarning)
 from three_agent_q import S, ACTIONS
 
 
-q_1 = pd.read_csv('three_agents_benchmark/three_agents_q1.csv', header=None).drop(0).to_numpy()
-q_2 = pd.read_csv('three_agents_benchmark/three_agents_q2.csv', header=None).drop(0).to_numpy()
-q_3 = pd.read_csv('three_agents_benchmark/three_agents_q3.csv', header=None).drop(0).to_numpy()
+# q_1 = pd.read_csv('three_agents_benchmark/three_agents_q1.csv', header=None).drop(0).to_numpy()
+# q_2 = pd.read_csv('three_agents_benchmark/three_agents_q2.csv', header=None).drop(0).to_numpy()
+# q_3 = pd.read_csv('three_agents_benchmark/three_agents_q3.csv', header=None).drop(0).to_numpy()
+
+q_1=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] 
+q_2=[2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] 
+q_3=[2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 
 def get_action(q_table, agent_j_in_dead_state, agent_k_in_dead_state, row_num):
@@ -61,8 +65,8 @@ for i in range(6):
             agent_id = 1
             agent_1_row_num = S[(agent_1_obs, agent_2_in_dead_state, agent_3_in_dead_state)]
             
-            # a1_action = np.argmax(q_1[agent_1_row_num])
-            a1_action = get_action(q_1, agent_j_in_dead_state=agent_2_in_dead_state, agent_k_in_dead_state=agent_3_in_dead_state, row_num=agent_1_row_num)
+            a1_action = q_1[agent_1_row_num]
+            # a1_action = get_action(q_1, agent_j_in_dead_state=agent_2_in_dead_state, agent_k_in_dead_state=agent_3_in_dead_state, row_num=agent_1_row_num)
             # print(a1_action)
             
             a1_action = ACTIONS[a1_action]
@@ -90,8 +94,8 @@ for i in range(6):
             agent_id = 2
             agent_2_row_num = S[(agent_2_obs, agent_1_in_dead_state, agent_3_in_dead_state)]
             
-            # a2_action = np.argmax(q_2[agent_2_row_num])
-            a2_action = get_action(q_2, agent_j_in_dead_state=agent_1_in_dead_state, agent_k_in_dead_state=agent_3_in_dead_state, row_num=agent_2_row_num)
+            a2_action = q_2[agent_2_row_num]
+            # a2_action = get_action(q_2, agent_j_in_dead_state=agent_1_in_dead_state, agent_k_in_dead_state=agent_3_in_dead_state, row_num=agent_2_row_num)
             
             a2_action = ACTIONS[a2_action]
             
@@ -117,8 +121,8 @@ for i in range(6):
             agent_id = 3
             agent_3_row_num = S[(agent_3_obs, agent_1_in_dead_state, agent_2_in_dead_state)]
             
-            # a3_action = np.argmax(q_3[agent_3_row_num])
-            a3_action = get_action(q_3, agent_j_in_dead_state=agent_1_in_dead_state, agent_k_in_dead_state=agent_2_in_dead_state, row_num=agent_3_row_num)
+            a3_action = q_3[agent_3_row_num]
+            # a3_action = get_action(q_3, agent_j_in_dead_state=agent_1_in_dead_state, agent_k_in_dead_state=agent_2_in_dead_state, row_num=agent_3_row_num)
             
             
             a3_action = ACTIONS[a3_action]
@@ -141,8 +145,8 @@ for i in range(6):
             
             curr_event = info["curr_event"]
 
-        print((a1_return, a2_return, a3_return), reward)
-        
+    #     print((a1_return, a2_return, a3_return), reward)
+    # print(simulation_result)
     
     a1_return += penalty
     a2_return += penalty

@@ -10,6 +10,8 @@ warnings.filterwarnings("ignore", category=UserWarning)
 from three_agent_q import S, ACTIONS
 
 successful_protocols = pd.read_csv('three_agents_benchmark/successful_protocols.csv')
+# successful_protocols = pd.read_csv('three_agents_benchmark/successful_protocols_with_returns.csv')
+# successful_protocols = successful_protocols[successful_protocols["Agent 1 Return"]==0]
 
 returns_dict = {}
 
@@ -22,10 +24,7 @@ communication_counts = {
     "cbas$":[]
 }
 
-a1_protocol_list = []
-a2_protocol_list = []
-a3_protocol_list = []
-
+return_value_list = []
 
 for index, row in successful_protocols.iterrows():
     # print(f"{index} / {len(successful_protocols)}", end="\r")
@@ -39,78 +38,6 @@ for index, row in successful_protocols.iterrows():
     env = gym.make('ThreeAgentsEnv-v0', render_mode=None, string_mode="simulation")
     
     return_values = [0,0,0]
-    
-    a1_communication_protocol={
-            1 :[0,0,0,0],
-            2 :[0,0,0,0],
-            3 :[0,0,0,0],
-            4 :[0,0,0,0],
-            5 :[0,0,0,0],
-            6 :[0,0,0,0],
-            7 :[0,0,0,0],
-            8 :[0,0,0,0],
-            9 :[0,0,0,0],
-            10:[0,0,0,0],
-            11:[0,0,0,0],
-            12:[0,0,0,0],
-            13:[0,0,0,0],
-            14:[0,0,0,0],
-            15:[0,0,0,0],
-            16:[0,0,0,0],
-            17:[0,0,0,0],
-            19:[0,0,0,0],
-            21:[0,0,0,0],
-            22:[0,0,0,0],
-            -1:[0,0,0,0],
-    }
-    
-    a2_communication_protocol={
-            1 :[0,0,0,0],
-            2 :[0,0,0,0],
-            3 :[0,0,0,0],
-            4 :[0,0,0,0],
-            5 :[0,0,0,0],
-            6 :[0,0,0,0],
-            7 :[0,0,0,0],
-            8 :[0,0,0,0],
-            9 :[0,0,0,0],
-            10:[0,0,0,0],
-            11:[0,0,0,0],
-            12:[0,0,0,0],
-            13:[0,0,0,0],
-            14:[0,0,0,0],
-            15:[0,0,0,0],
-            16:[0,0,0,0],
-            17:[0,0,0,0],
-            19:[0,0,0,0],
-            21:[0,0,0,0],
-            22:[0,0,0,0],
-            -1:[0,0,0,0],
-    }
-    
-    a3_communication_protocol={
-            1 :[0,0,0,0],
-            2 :[0,0,0,0],
-            3 :[0,0,0,0],
-            4 :[0,0,0,0],
-            5 :[0,0,0,0],
-            6 :[0,0,0,0],
-            7 :[0,0,0,0],
-            8 :[0,0,0,0],
-            9 :[0,0,0,0],
-            10:[0,0,0,0],
-            11:[0,0,0,0],
-            12:[0,0,0,0],
-            13:[0,0,0,0],
-            14:[0,0,0,0],
-            15:[0,0,0,0],
-            16:[0,0,0,0],
-            17:[0,0,0,0],
-            19:[0,0,0,0],
-            21:[0,0,0,0],
-            22:[0,0,0,0],
-            -1:[0,0,0,0],
-    }
     
     for i in range(6):
         terminated = False
@@ -140,8 +67,6 @@ for index, row in successful_protocols.iterrows():
                 
                 a1_action = q_1[a1_row_num]
                 
-                a1_communication_protocol[a1_obs][a1_action] += 1
-                
                 a1_action = ACTIONS[a1_action]
                 
                 communication_count[0] += np.sum(a1_action)
@@ -164,8 +89,7 @@ for index, row in successful_protocols.iterrows():
                 a2_row_num = S[(a2_obs, a1_in_dead_state, a3_in_dead_state)]
                 
                 a2_action = q_2[a2_row_num]
-                
-                a2_communication_protocol[a2_obs][a2_action] += 1
+    
                 a2_action = ACTIONS[a2_action]
                 
                 communication_count[1] += np.sum(a2_action)
@@ -188,7 +112,6 @@ for index, row in successful_protocols.iterrows():
                 
                 a3_action = q_3[a3_row_num]
                 
-                a3_communication_protocol[a3_obs][a3_action] += 1
                 a3_action = ACTIONS[a3_action]
                 
                 communication_count[2] += np.sum(a3_action)
@@ -231,22 +154,22 @@ for index, row in successful_protocols.iterrows():
     return_values[1] = round(return_values[1], 2)
     return_values[2] = round(return_values[2], 2)
     
+    
+    
+    return_value_list.append(return_values)
+    
     if returns_dict.get(tuple(return_values)) is None:
         returns_dict[tuple(return_values)] = row["Counts"]
     else:
         returns_dict[tuple(return_values)] += row["Counts"]
-    
-    a1_protocol_list.append(a1_communication_protocol)
-    a2_protocol_list.append(a2_communication_protocol)
-    a3_protocol_list.append(a3_communication_protocol)
+        
+return_value_df = pd.DataFrame(return_value_list, columns=["Agent 1 Return", "Agent 2 Return", "Agent 3 Return"])
+        
+successful_protocols["Agent 1 Return"] = return_value_df["Agent 1 Return"]
+successful_protocols["Agent 2 Return"] = return_value_df["Agent 2 Return"]
+successful_protocols["Agent 3 Return"] = return_value_df["Agent 3 Return"]
 
-successful_protocols["Agent 1 Return"] = return_values[0]
-successful_protocols["Agent 2 Return"] = return_values[1]
-successful_protocols["Agent 3 Return"] = return_values[2]
-
-print("\nAgent 1 Returns:", return_values[0])
-print("Agent 2 Returns:", return_values[1])
-print("Agent 3 Returns:", return_values[2])
+successful_protocols.to_csv("three_agents_benchmark/successful_protocols_with_returns.csv", index=False)
 
 for key in communication_counts:
     counts = communication_counts[key]
@@ -258,22 +181,11 @@ for key in communication_counts:
     avg_counts = [round(avg_counts[i]/len(counts),3) for i in range(3)]
     print(f"Average communication counts for input word '{key}': Agent 1: {avg_counts[0]}, Agent 2: {avg_counts[1]}, Agent 3: {avg_counts[2]}")
 
-returns_dict_dist = {}
-for key in returns_dict:
-    return_sorted = np.sort(key)
-    if returns_dict_dist.get(tuple(return_sorted)) is None:
-        returns_dict_dist[tuple(return_sorted)] = returns_dict[key]
-    else:
-        returns_dict_dist[tuple(return_sorted)] += returns_dict[key]
 
 returns_df = pd.DataFrame(list(returns_dict.items()), columns=["Returns (A1, A2, A3)", "Count"])
 returns_df = returns_df.sort_values(by="Count", ascending=False)
 print("\nReturns Distribution:")
 print(returns_df)
 
-returns_df = pd.DataFrame(list(returns_dict_dist.items()), columns=["Returns (A1, A2, A3)", "Count"])
-returns_df = returns_df.sort_values(by="Count", ascending=False)
-print("\nReturns Distribution:")
-print(returns_df)
 
-returns_df.to_csv("three_agents_benchmark/returns_distribution.csv", index=False)
+

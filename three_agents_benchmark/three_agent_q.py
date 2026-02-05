@@ -272,7 +272,7 @@ def q_training(env, epochs=10000, alpha = 0.1, gamma=0.1, epsilon=0.1, print_pro
     return q_1, q_2, q_3
 
 # env = gym.make('ThreeAgentsEnv-v0', render_mode=None, string_mode="training")
-# q_1, q_2, q_3 = q_training(env, epochs=10000, alpha = 0.001, gamma=0.5, epsilon=0.1, print_process=True)
+# q_1, q_2, q_3 = q_training(env, epochs=20000, alpha = 0.001, gamma=0.1, epsilon=0.1, print_process=True)
 
 # q_1_df = pd.DataFrame(q_1, columns=["[X,X]", "[X,O]", "[O,X]", "[O,O]"])    
 # q_2_df = pd.DataFrame(q_2, columns=["[X,X]", "[X,O]", "[O,X]", "[O,O]"])    
