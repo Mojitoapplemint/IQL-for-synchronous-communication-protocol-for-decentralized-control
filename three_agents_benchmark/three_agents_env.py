@@ -11,7 +11,7 @@ gym.register(
 )
 
 class ThreeAgentsEnv(gym.Env):
-    COMMUNICATE_COST = 30
+    COMMUNICATION_COST = 30
     
     m_L_transitions = {
         1: {'a':2, 'b':7, 'c':12},
@@ -142,19 +142,16 @@ class ThreeAgentsEnv(gym.Env):
         
         self.agent_3_state = self.m_L_bot_transitions[self.agent_3_state][vector_label[3]]
         
-        communication_cost = -1* sum(communicate) * self.COMMUNICATE_COST
+        communication_cost = -1* sum(communicate) * self.COMMUNICATION_COST
         
         if self.render_mode == 'human' :
             temp = [1,2,3]
-            events = ['a','b','c']
-            
-            temp.remove(agent_id)
                         
             receive_1 = vector_label[temp[0]]
             receive_2 = vector_label[temp[1]]
             
-            print(f"Agent {agent_id} {'communicated' if receive_1 else 'did not communicate'} '{events[agent_id-1]}' to Agent {temp[0]}")
-            print(f"Agent {agent_id} {'communicated' if receive_2 else 'did not communicate'} '{events[agent_id-1]}' to Agent {temp[1]}")
+            print(f"Agent {agent_id} {'communicated' if receive_1==curr_event else 'did not communicate'} '{curr_event}' to Agent {temp[0]}")
+            print(f"Agent {agent_id} {'communicated' if receive_2==curr_event else 'did not communicate'} '{curr_event}' to Agent {temp[1]}")
             print(communication_cost)
             
             print(f"\nEvent '{self.input_word[self.training_word_index]}' occured")
@@ -192,8 +189,6 @@ class ThreeAgentsEnv(gym.Env):
         
         config = (self.system_state, self.agent_1_state, self.agent_2_state, self.agent_3_state)
 
-        curr_event=self.input_word[self.training_word_index]
-
         info = {'curr_event': curr_event, "string": self.input_word}
         
         return np.array(config, dtype=np.int32), (communication_cost, reward), terminated, False, info
@@ -227,21 +222,18 @@ class ThreeAgentsEnv(gym.Env):
         
         self.agent_3_state = self.m_L_bot_transitions[self.agent_3_state][vector_label[3]]
         
-        communication_cost = -1* sum(communicate) * self.COMMUNICATE_COST
+        communication_cost = -1* sum(communicate) * self.COMMUNICATION_COST
         
         
         if self.render_mode == 'human' :
             temp = [1,2,3]
-            events = ['a','b','c']
-            
-            temp.remove(agent_id)
                         
             receive_1 = vector_label[temp[0]]
             receive_2 = vector_label[temp[1]]
 
             self.render()
-            print(f"Agent {agent_id} {'communicated' if receive_1 else 'did not communicate'} '{events[agent_id-1]}' to Agent {temp[0]}")
-            print(f"Agent {agent_id} {'communicated' if receive_2 else 'did not communicate'} '{events[agent_id-1]}' to Agent {temp[1]}")
+            print(f"Agent {agent_id} {'communicated' if receive_1==curr_event else 'did not communicate'} '{curr_event}' to Agent {temp[0]}")
+            print(f"Agent {agent_id} {'communicated' if receive_2==curr_event else 'did not communicate'} '{curr_event}' to Agent {temp[1]}")
             
             self.simulate()
         

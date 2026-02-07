@@ -71,7 +71,7 @@ for i in range(6):
             
             a1_action = ACTIONS[a1_action]
             
-            # print(a1_action)
+            print(a1_action)
             
             count[0] += np.sum(a1_action)
             
@@ -99,7 +99,7 @@ for i in range(6):
             
             a2_action = ACTIONS[a2_action]
             
-            # print(a2_action)
+            print(a2_action)
             
             count[1] += np.sum(a2_action)
             
@@ -127,7 +127,7 @@ for i in range(6):
             
             a3_action = ACTIONS[a3_action]
             
-            # print(a3_action)
+            print(a3_action)
             
             count[2] += np.sum(a3_action)
             
