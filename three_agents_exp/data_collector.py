@@ -13,7 +13,7 @@ for i in range(session_count):
     print(str(100*i/session_count)+"%","done" , end="\r")
     env = gym.make('ThreeAgentsComplexEnv-v0', render_mode=None, string_mode="training")
     
-    q_1, q_2, q_3 = q_training(env, epochs=100000, alpha=0.001, gamma=0.9, epsilon=0.1)
+    q_1, q_2, q_3 = q_training(env, epochs=100000, alpha=0.001, gamma=0.9, min_epsilon=0.1)
     
     env = gym.make('ThreeAgentsComplexEnv-v0', render_mode=None, string_mode="simulation")
     

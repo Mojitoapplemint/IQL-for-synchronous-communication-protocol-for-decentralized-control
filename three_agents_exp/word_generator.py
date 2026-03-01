@@ -7,34 +7,11 @@ class WordGenerator:
         self.max_star = max_star
 
     def generate_simulation_word(self):
-        
-        word = ""
 
-        choice =  random.choice([0,1])
-        
-        if choice == 0:
-            word += 'ac'
-            word += random.choice(['x', 'y'])
-        else:
-            word += 'd'
-
-            word += 'ca'
-            word += random.choice(['x','y'])
-
-        
-        return word + 's'
+        return random.choice(['cax', 'cay', 'acx', 'acy']) + 's'
     
     def generate_training_word(self):
-        word = ""
-
-        choice =  random.choice([0,1])
-        
-        if choice == 0:
-            word += random.choice(['cax', 'cay'])
-        elif choice == 1:
-            word += random.choice(['acx', 'acy'])
-        
-        return word + 's'
+        return random.choice(['cax', 'cay', 'acx', 'acy']) + 's'
     
     # def generate_simulation_word(self):
         

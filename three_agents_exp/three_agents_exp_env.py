@@ -12,90 +12,44 @@ gym.register(
 
 class ThreeAgentsExpEnv(gym.Env):
     COMMUNICATION_COST = 1
-    EXPENSIVE_COMMUNICATION_COST = 30
+    EXPENSIVE_COMMUNICATION_COST = 100
     EXPENSIVE_COMMUNICATION = ['x', 'y']
-    D_PENALTY = 500
-    E_PENALTY = 100
+    D_PENALTY = 1000
+    E_PENALTY = 500
     
-    D_PEN_STATES = {15,19}
+    D_PEN_STATES = {10,13}
     
-    E_PEN_STATES = {16,17,18}
+    E_PEN_STATES = {11,12}
     
-    STATES_DISABLE_SIGMA = {8,14}
+    STATES_DISABLE_SIGMA = {6,9}
     
     m_L_transitions = {
-        1:{'d':2, 'a':3},
-        2:{'c':4, 'd':5},
-        3:{'c':6},
-        4:{'a':7},        
-        5:{'x':10, 'y':11},
-        6:{'x':13, 'y':14},
-        7:{'x':8, 'y':9},
-        8:{'s':15},
-        9:{'s':16},
-        10:{'y':12},
-        11:{'x':12},
-        12:{'s':17},
-        13:{'s':18},
-        14:{'s':19},
+        1:{'c':2, 'a':3},
+        2:{'a':4},
+        3:{'c':5},
+        4:{'x':6, 'y':7},
+        5:{'x':8, 'y':9},
+        6:{'s':10},        
+        7:{'s':11},
+        8:{'s':12},
+        9:{'s':13},
     }
     
-    observer_states={
-        1: "{1,2,5}",
-        3: "{3}",
-        4: "{4}",
-        6: "{6}",
-        7: "{7}",
-        8: "{8}",
-        9: "{9}",
-        10:"{10}",
-        11:"{11}",
-        12:"{12}",
-        13:"{13}",
-        14:"{14}",
-        15:"{15}",
-        16:"{16}",
-        17:"{17}",
-        18:"{18}",
-        19:"{19}",
-        -1:"{-1}"
-    }
-    
-    observer_transitions = {
-        1:{'a':3, 'c':4, 'x':10, 'y':11},
-        3:{'c':6},
-        4:{'a':7,},
-        6:{'x':13, 'y':14},
-        7:{'x':8, 'y':9},
-        8:{'s':14},
-        9:{'s':15},
-        10:{'y':12},
-        11:{'x':12},
-        12:{'s':17},
-        13:{'s':18},
-        14:{'s':19},
-    }
-    
-    
-    observer_bot_transitions = {
-        1: {'':1, 'a':3, 'c':4, 'x':9, 'y':10,   's':-1},
-        3: {'':1, 'c':6,                         'a':-1, 'x':-1, 'y':-1, 's':-1,},
-        4: {'':4, 'a':7,                         'x':-1, 'y':-1, 'c':-1, 's':-1},
-        6: {'':6, 'x':13, 'y':14,                'a':-1, 'c':-1, 's':-1},
-        7: {'':7, 'x':8, 'y':9,                  'a':-1, 'c':-1, 's':-1},
-        8: {'':8, 's':15,                        'a':-1, 'c':-1, 'x':-1, 'y':-1},
-        9: {'':9, 's':16,                        'a':-1, 'c':-1, 'x':-1, 'y':-1},
-        10:{'':10, 'y':12,                        'a':-1, 'c':-1, 'x':-1, 's':-1},
-        11:{'':11, 'x':12,                       'a':-1, 'c':-1, 'y':-1, 's':-1},
-        12:{'':12, 's':17,                       'a':-1, 'c':-1, 'x':-1, 'y':-1},
-        13:{'':13, 's':18,                       'a':-1, 'c':-1, 'x':-1, 'y':-1},
-        14:{'':14, 's':19,                       'a':-1, 'c':-1, 'x':-1, 'y':-1},
-        15:{'':15,                               'a':-1, 'c':-1, 'x':-1, 'y':-1, 's':-1},
-        16:{'':16,                               'a':-1, 'c':-1, 'x':-1, 'y':-1, 's':-1},
-        17:{'':17,                               'a':-1, 'c':-1, 'x':-1, 'y':-1, 's':-1},
-        18:{'':18,                               'a':-1, 'c':-1, 'x':-1, 'y':-1, 's':-1},
-        19:{'':19,                               'a':-1, 'c':-1, 'x':-1, 'y':-1, 's':-1},
-        -1:{'':-1,                               'a':-1, 'c':-1, 'x':-1, 'y':-1, 's':-1}
+    m_L_bot_transitions = {
+        1: {'':1, 'c':2, 'a':3          , 'x':-1, 'y':-1, 's':-1},
+        2: {'':2, 'a':4                 , 'c':-1, 'x':-1, 'y':-1, 's':-1},
+        3: {'':3, 'c':5                 , 'a':-1, 'x':-1, 'y':-1, 's':-1},
+        4: {'':4, 'x':6, 'y':7          , 'a':-1, 'c':-1, 's':-1},
+        5: {'':5, 'x':8, 'y':9          , 'a':-1, 'c':-1, 's':-1},
+        6: {'':6, 's':10                , 'c':-1, 'a':-1, 'x':-1, 'y':-1},        
+        7: {'':7, 's':11                , 'c':-1, 'a':-1, 'x':-1, 'y':-1},
+        8: {'':8, 's':12                , 'c':-1, 'a':-1, 'x':-1, 'y':-1},
+        9: {'':9, 's':13                , 'c':-1, 'a':-1, 'x':-1, 'y':-1},
+        10:{'':10, 's':-1 , 'c':-1, 'a':-1, 'x':-1, 'y':-1},
+        11:{'':11, 's':-1 , 'c':-1, 'a':-1, 'x':-1, 'y':-1},
+        12:{'':12, 's':-1 , 'c':-1, 'a':-1, 'x':-1, 'y':-1},
+        13:{'':13, 's':-1 , 'c':-1, 'a':-1, 'x':-1, 'y':-1},
+        -1:{'':-1, 's':-1 , 'c':-1, 'a':-1, 'x':-1, 'y':-1},
     }
     
     meta_data = {'render_modes':['human'], 'string_modes':['training', 'simulation', 'stats']}
@@ -126,12 +80,11 @@ class ThreeAgentsExpEnv(gym.Env):
             self.word = self.word_generator.generate_training_word()+'$'
             if self.render_mode == 'human':
                 print(f"\n===========New Episode=========== \nTraining word: {self.word}")
-                print(f"Resulting V structure state: <{self.observer_states[self.system_state], self.observer_states[self.agent_1_state], self.observer_states[self.agent_2_state], self.observer_states[self.agent_3_state]}>")
+                print(f"Resulting V structure state: <{[self.system_state], [self.agent_1_state], [self.agent_2_state], [self.agent_3_state]}>")
                 
             
         elif self.string_mode == 'simulation':
-            # self.word = self.word_generator.generate_simulation_word()+'$'
-            # # self.word = 'ddxs$'
+            self.word = self.word_generator.generate_simulation_word()+'$'
             
             self.word = self.words_for_stats[self.words_for_stats_index] + '$'
             self.words_for_stats_index += 1
@@ -142,20 +95,20 @@ class ThreeAgentsExpEnv(gym.Env):
                 print(f"\n===========New Simulation=========== \nSimulation word: {self.word}")
                 self.simulate()
         
-        elif self.string_mode == 'stats':
-            self.word = self.words_for_stats[self.words_for_stats_index] + '$'
-            self.words_for_stats_index += 1
+        # elif self.string_mode == 'stats':
+        #     self.word = self.words_for_stats[self.words_for_stats_index] + '$'
+        #     self.words_for_stats_index += 1
         
         self.curr_event = self.word[self.word_index]
         
-        while self.curr_event == 'd':
-            self.v_transition(['d', '', '', ''])
-            if self.render_mode == 'human':
-                self.render()
-                self.simulate()
+        # while self.curr_event == 'd':
+        #     self.v_transition(['d', '', '', ''])
+        #     if self.render_mode == 'human':
+        #         self.render()
+        #         self.simulate()
             
-            self.word_index += 1
-            self.curr_event = self.word[self.word_index]
+        #     self.word_index += 1
+        #     self.curr_event = self.word[self.word_index]
                 
         obs = (self.system_state, self.agent_1_state, self.agent_2_state, self.agent_3_state)
         info  = {'word': self.word, 'curr_event': self.curr_event}
@@ -164,13 +117,13 @@ class ThreeAgentsExpEnv(gym.Env):
                 
     def v_transition(self, vector_label):
         if self.string_mode == 'training':
-            self.system_state = self.observer_transitions[self.system_state][vector_label[0]]
+            self.system_state = self.m_L_transitions[self.system_state][vector_label[0]]
         else:
             self.system_state = self.m_L_transitions[self.system_state][vector_label[0]]
         
-        self.agent_1_state = self.observer_bot_transitions[self.agent_1_state][vector_label[1]]
-        self.agent_2_state = self.observer_bot_transitions[self.agent_2_state][vector_label[2]]
-        self.agent_3_state = self.observer_bot_transitions[self.agent_3_state][vector_label[3]]
+        self.agent_1_state = self.m_L_bot_transitions[self.agent_1_state][vector_label[1]]
+        self.agent_2_state = self.m_L_bot_transitions[self.agent_2_state][vector_label[2]]
+        self.agent_3_state = self.m_L_bot_transitions[self.agent_3_state][vector_label[3]]
 
     def get_vector_label_and_communication_cost_from_action(self, communicate, agent_id):
         vector_label = [0,0,0,0]
@@ -226,14 +179,14 @@ class ThreeAgentsExpEnv(gym.Env):
         self.curr_event = self.word[self.word_index]
         
         # State transition for completely unobservable event 'd' (Only applied when simulation/stats mode)
-        while self.curr_event == 'd':
-            self.v_transition(['d', '', '', ''])
+        # while self.curr_event == 'd':
+        #     self.v_transition(['d', '', '', ''])
             
-            if self.render_mode == 'human':
-                self.render()
+        #     if self.render_mode == 'human':
+        #         self.render()
             
-            self.word_index += 1
-            self.curr_event = self.word[self.word_index]
+        #     self.word_index += 1
+        #     self.curr_event = self.word[self.word_index]
         
         # State transition for 's' for training mode
         if self.curr_event == 's' and self.string_mode == 'training':
@@ -274,10 +227,10 @@ class ThreeAgentsExpEnv(gym.Env):
             
             
             # Check simulation results based on system state and agent 2's disable status
-            if self.system_state == self.E_PEN_STATES and not (agent_2_disable):
+            if (self.system_state in self.E_PEN_STATES) and not (agent_2_disable):
                 simulation_result = True
             
-            if self.system_state == self.STATES_DISABLE_SIGMA and (agent_2_disable):
+            if (self.system_state in self.STATES_DISABLE_SIGMA) and (agent_2_disable):
                 simulation_result = True
             
             if (self.system_state in self.D_PEN_STATES) and self.agent_2_state ==-1:
@@ -307,14 +260,15 @@ class ThreeAgentsExpEnv(gym.Env):
             print(f"Agent {sender_1} {'communicated' if communicate_1 else 'did not communicate'} '{self.curr_event}' to Agent {receiver_1}")
             print(f"Agent {sender_2} {'communicated' if communicate_2 else 'did not communicate'} '{self.curr_event}' to Agent {receiver_2}")
 
+
         if self.string_mode == 'training':
-            print(f"Resulting V structure state: <{self.observer_states[self.system_state], self.observer_states[self.agent_1_state], self.observer_states[self.agent_2_state], self.observer_states[self.agent_3_state]}>")
+            print(f"Resulting V structure state: <{self.system_state}, {self.agent_1_state}, {self.agent_2_state}, {self.agent_3_state}>")
         elif self.string_mode == 'simulation':
-            print(f"Resulting V structure state: <{self.system_state, self.observer_states[self.agent_1_state], self.observer_states[self.agent_2_state], self.observer_states[self.agent_3_state]}>")
+            print(f"Resulting V structure state: <{self.system_state}, {self.agent_1_state}, {self.agent_2_state}, {self.agent_3_state}>")
 
     
     def simulate(self, agent_2_disable=False):
-        a = [" " for _ in range(20)]
+        a = [" " for _ in range(14)]
         a[self.system_state] = "#"
         
         e_block = "|"
@@ -339,39 +293,33 @@ class ThreeAgentsExpEnv(gym.Env):
                 print("\nFailed to disable s")
         
         print(
-         "                               +-01-+                       \n"
-        f"                               |  {a[1]} |                       \n"
-         "                               +----+                       \n"
-         "                              /      \\                       \n"
-         "                           d /        \\ a                 \n"
-         "                            v          v                    \n"
-         "                      +-02-+           +-03-+                  \n"
-        f"         -------------|  {a[2]} |           |  {a[3]} |--------           \n"
-         "         |            +----+           +----+       |      \n"
-         "      c  |                  \\                       | c    \n"
-         "         |                   \\ d                    |    \n"
-         "         v                    v                     v                 \n"
-         "      +-04-+                 +-05-+               +-06-+                \n"
-        f"      |  {a[4]} |                 |  {a[5]} |               |  {a[6]} |                \n"
-         "      +----+                 +----+               +----+                \n"
-        f"         |                   /   \\                  / \\                 \n"
-        f"       a |                x /     \\ y            x /   \\ y            \n"
-         "         v                 v       v              v     v            \n"
-         "      +-07-+            +-10-+   +-11-+       +-13-+   +-14-+           \n"
-        f"      |  {a[7]} |            |  {a[10]} |   |  {a[11]} |       |  {a[13]} |   |  {a[14]} |          \n"
-         "      +----+            +----+   +----+       +----+   +----+           \n"
-        f"       /   \\                 \\   /               {e_block}        {d_block}       \n"
-        f"    x /     \\ y            y  \\ /  x           s {e_block}        {d_block} s  \n"
-         "     v       v                 v                 v        v    \n"
-         "  +-08-+   +-09-+            +-12-+           +-18-+   +-19-+       \n"
-        f"  |  {a[8]} |   |  {a[9]} |            |  {a[12]} |           |  {a[18]} |   |  {a[19]} |    \n"
-         "  +----+   +----+            +----+           +----+   +----+    \n"
-        f"     {d_block}       {e_block}                 {e_block}                               \n"
-        f"   s {d_block}       {e_block} s             s {e_block}                               \n"
-         "     v       v                 v                               \n"
-         "  +-15-+   +-16-+            +-17-+                            \n"
-        f"  |  {a[15]} |   |  {a[16]} |            |  {a[17]} |                            \n"
-         "  +----+   +----+            +----+                            \n")
+         "                               +-01-+                           \n"
+        f"                      ---------|  {a[1]} |---------                  \n"
+         "                      |        +----+        |                  \n"
+         "                   c  |                      |   a              \n"
+         "                      |                      |                  \n"
+         "                      v                      v                  \n"
+         "                   +-02-+                 +-03-+                \n"
+        f"                   |  {a[2]} |                 |  {a[3]} |                \n"
+         "                   +----+                 +----+                \n"
+        f"                      |                      |                  \n"
+        f"                    a |                      | c                \n"
+         "                      v                      v                  \n"
+         "                   +-04-+                 +-05-+                \n"
+        f"                   |  {a[4]} |                 |  {a[5]} |                \n"
+         "                   +----+                 +----+                \n"
+        f"                    /   \\                 /   \\               \n"
+        f"                 x /     \\ y           x /     \\ y            \n"
+         "                  v       v              v       v              \n"
+         "               +-06-+   +-07-+        +-08-+   +-09-+           \n"
+        f"               |  {a[6]} |   |  {a[7]} |        |  {a[8]} |   |  {a[9]} |           \n"
+         "               +----+   +----+        +----+   +----+           \n"
+        f"                  {d_block}       {e_block}              {e_block}       {d_block}              \n"
+        f"                s {d_block}       {e_block} s          s {e_block}       {d_block} s            \n"
+         "                  v       v              v       v              \n"
+         "               +-10-+   +-11-+        +-12-+   +-13-+           \n"
+        f"               |  {a[10]} |   |  {a[11]} |        |  {a[12]} |   |  {a[13]} |           \n"
+         "               +----+   +----+        +----+   +----+           \n")
 
         time.sleep(1)
         clear_output()
