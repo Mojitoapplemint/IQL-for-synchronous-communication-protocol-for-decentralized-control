@@ -10,9 +10,10 @@ from three_agents_exp_q import S_1, S_3, ACTIONS,A1_OBS, A3_OBS, get_action
 
 
 
-env = gym.make('ThreeAgentsExpEnv-v0', render_mode="human", string_mode="simulation")
+env = gym.make('ThreeAgentsExpEnv-v0', render_mode=None, string_mode="simulation")
 
 fail_count = 0
+return_values = [0,0,0]
 
 for i in range(4):
     state, info = env.reset()
@@ -38,11 +39,13 @@ for i in range(4):
             s_1 = S_1[(agent_1_belief,curr_event, agent_2_in_dead_state, agent_3_in_dead_state)]
             
             # Choosing action only based on the Q value; never explore
-            if curr_event == 'a':
+            if curr_event == 'a' and agent_1_belief == 1:
+                a1_action = 3
+            if curr_event == 'a' and agent_1_belief == 2:
                 a1_action = 3
             elif curr_event == 'x' and agent_1_belief == 4:
                 a1_action = 2
-            elif curr_event == 'x' and agent_1_belief == 5:
+            elif curr_event == 'x':
                 a1_action = 0
             
             a1_action = ACTIONS[a1_action]
@@ -77,12 +80,14 @@ for i in range(4):
             s_3 = S_3[(agent_3_belief, curr_event, agent_1_in_dead_state, agent_2_in_dead_state)]
             
             # Choosing action only based on the Q value; never explore
-            if curr_event == 'c':
+            if curr_event == 'c' and agent_3_belief == 1:
                 a3_action = 3
-            elif curr_event == 'y' and agent_3_belief == 4:
-                a3_action = 0
+            if curr_event == 'c' and agent_3_belief == 3:
+                a3_action = 3
             elif curr_event == 'y' and agent_3_belief == 5:
                 a3_action = 1
+            elif curr_event == 'y':
+                a3_action = 0
             
             a3_action = ACTIONS[a3_action]
             count[2] +=np.sum(a3_action)
@@ -115,9 +120,19 @@ for i in range(4):
 
     a3_return += penalty
 
-
+    return_values[0] += a1_return
+    return_values[1] += a2_return
+    return_values[2] += a3_return
     # print()
     print(count)
     print(a1_return, a2_return, a3_return)
 
 print(f"Failure: {fail_count}")
+    
+    
+return_values = [return_values[i]/6 for i in range(3)]
+return_values[0] = round(return_values[0], 2)
+return_values[1] = round(return_values[1], 2)
+return_values[2] = round(return_values[2], 2)
+
+print(return_values)

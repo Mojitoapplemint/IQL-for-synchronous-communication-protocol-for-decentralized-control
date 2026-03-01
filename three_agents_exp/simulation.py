@@ -2,7 +2,7 @@ import numpy as np
 import gymnasium as gym
 import pandas as pd
 import random
-import three_agents_exp_env as three_agents_exp_env
+import three_agents_exp_env
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 from three_agents_exp_q import S_1, S_3, ACTIONS,A1_OBS, A3_OBS, get_action

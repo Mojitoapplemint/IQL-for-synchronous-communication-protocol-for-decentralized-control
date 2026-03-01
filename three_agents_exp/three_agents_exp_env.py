@@ -11,11 +11,11 @@ gym.register(
 )
 
 class ThreeAgentsExpEnv(gym.Env):
-    COMMUNICATION_COST = 1
+    COMMUNICATION_COST = 0.5
     EXPENSIVE_COMMUNICATION_COST = 100
     EXPENSIVE_COMMUNICATION = ['x', 'y']
-    D_PENALTY = 1000
-    E_PENALTY = 500
+    D_PENALTY = 300
+    E_PENALTY = 50
     
     D_PEN_STATES = {10,13}
     
@@ -84,13 +84,10 @@ class ThreeAgentsExpEnv(gym.Env):
                 
             
         elif self.string_mode == 'simulation':
-            self.word = self.word_generator.generate_simulation_word()+'$'
-            
             self.word = self.words_for_stats[self.words_for_stats_index] + '$'
             self.words_for_stats_index += 1
-            
             self.curr_event = self.word[self.word_index]
-            
+                        
             if self.render_mode == 'human':
                 print(f"\n===========New Simulation=========== \nSimulation word: {self.word}")
                 self.simulate()

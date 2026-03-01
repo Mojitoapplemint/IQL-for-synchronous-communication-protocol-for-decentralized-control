@@ -260,6 +260,9 @@ ACTIONS_INV ={
 }
 
 def epsilon_decay(min_epsilon, episode, max_epochs):
+    if episode <= 0.1*max_epochs:
+        return 1.0
+    
     initial_epsilon = 1.0
     return max(min_epsilon, initial_epsilon-(episode/(0.9*max_epochs)))
 
@@ -290,6 +293,9 @@ def q_training(env, epochs=10000, alpha = 0.1, gamma=0.1, min_epsilon=0.1, print
     q_1 = np.zeros((len(S_1), env.action_space.n))
     # q_2 = np.zeros((len(S_2), env.action_space.n))
     q_3 = np.zeros((len(S_3), env.action_space.n))
+    
+    a1_action_count = [0,0,0,0]
+    a3_action_count = [0,0,0,0]
     
     for episode in range(epochs):
         if (print_process and episode%100==0):
@@ -330,6 +336,7 @@ def q_training(env, epochs=10000, alpha = 0.1, gamma=0.1, min_epsilon=0.1, print
                                 
                 a1_action = get_action(q_1, agent_j_in_dead_state=agent_2_in_dead_state, agent_k_in_dead_state=agent_3_in_dead_state, row_num=s_1, epsilon=epsilon)
 
+                a1_action_count[a1_action] += 1
                 
                 config, reward, terminated, _, info = env.step((agent_id, ACTIONS[a1_action]))
                 
@@ -373,7 +380,9 @@ def q_training(env, epochs=10000, alpha = 0.1, gamma=0.1, min_epsilon=0.1, print
                     q_3[prev_s_3][a3_action] += alpha * (reward_3 + gamma * np.max(q_3[s_3]) - q_3[prev_s_3][a3_action])
                     reward_3 = 0
                 
+                
                 a3_action = get_action(q_3, agent_j_in_dead_state=agent_1_in_dead_state, agent_k_in_dead_state=agent_2_in_dead_state, row_num=s_3, epsilon=epsilon)
+                a3_action_count[a3_action] += 1
                 
                 config, reward, terminated, _, info = env.step((agent_id, ACTIONS[a3_action]))
                 
@@ -405,7 +414,8 @@ def q_training(env, epochs=10000, alpha = 0.1, gamma=0.1, min_epsilon=0.1, print
         q_3[prev_s_3][a3_action] += alpha * (reward_3 + gamma * 0 - q_3[prev_s_3][a3_action])
         
 
-
+    # print(a1_action_count)
+    # print(a3_action_count)
     # print(action_dict)
     return q_1, q_3
 
