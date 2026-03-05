@@ -1,9 +1,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from word_generator import RegexWordGenerator
+from word_generator import WordGenerator
 import gymnasium as gym
 import cyclic_problem_env
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 
 GAMMA = 0.1
 
@@ -50,14 +52,15 @@ PHI = {
 # df.to_csv("second_cyclic_problem/strings.csv", index=False)
 
 
-successful_protocols = pd.read_csv("cyclic_problem_w_unobservable_events/simulation_successful_protocols.csv")
-# successful_protocols = pd.read_csv("cyclic_problem_w_unobservable_events/baselines.csv")
+successful_protocols = pd.read_csv("cyclic_problem_w_unobservable_events/successful_protocols.csv")
+baseline_protocols = pd.read_csv("cyclic_problem_w_unobservable_events/baselines.csv")
 
+protocols_df = pd.concat([baseline_protocols, successful_protocols], ignore_index=True)
 
 # print(successful_protocols)
 
-success_return_values_x = []
-success_return_values_y = []
+return_values_x = []
+return_values_y = []
 joint_return_values = []
 
 communicate_counts = []
@@ -67,18 +70,7 @@ a2_protocol_list=[]
 
 T_state_dict_list = []
 
-communication_counts_per_state = {
-     1 :[0,0,0,0],
-     2 :[0,0,0,0],
-     3 :[0,0,0,0],
-     4 :[0,0,0,0],
-     5 :[0,0,0,0],
-     6 :[0,0,0,0],
-     7 :[0,0,0,0],
-    -1:[0,0,0,0],
-}
-
-for index, row in successful_protocols.iterrows():
+for index, row in protocols_df.iterrows():
     # print(f"{index} / {len(successful_protocols)}")
 
     
@@ -141,13 +133,14 @@ for index, row in successful_protocols.iterrows():
         "(3, 3, 5)":0,
         "(7, 7, -1)":0,
         "(3, -1, 3)":0,
+        "(3, 2, 3)":0,
         "(7, -1, 7)":0,
     }
     
     
     communicate_count = [0,0,0,0]
     
-    for i in range (1000):
+    for i in range (500):
         terminated = False
         simulation_result = False
 
@@ -190,11 +183,9 @@ for index, row in successful_protocols.iterrows():
                 if agent_1_communicate ==1:
                     communicate_count[0] += 1
                     (a1_communication_protocol[agent_1_belief, agent_2_in_dead_state])[0] += 1
-                    communication_counts_per_state[agent_1_belief][0] += 1
                 else:
                     communicate_count[1] += 1
                     (a1_communication_protocol[agent_1_belief, agent_2_in_dead_state])[1] += 1
-                    communication_counts_per_state[agent_1_belief][1] += 1
 
 
                 config, reward, terminated, truncated, info = env.step((agent_id, agent_1_communicate))
@@ -202,8 +193,10 @@ for index, row in successful_protocols.iterrows():
                 system_state, agent_1_belief, agent_2_belief = config
                 
                 agent_2_in_dead_state = agent_2_belief == -1
-                    
-                reward_1 += reward
+                
+                comm_cost, penalty = reward
+                
+                reward_1 += comm_cost
                 
                 curr_symbol=info['input_alphabet']
                 
@@ -233,11 +226,9 @@ for index, row in successful_protocols.iterrows():
                     
                     communicate_count[2] += 1
                     (a2_communication_protocol[agent_2_belief, agent_1_in_dead_state])[0] += 1  
-                    communication_counts_per_state[agent_2_belief][2] += 1
                 else:
                     communicate_count[3] += 1
                     (a2_communication_protocol[agent_2_belief, agent_1_in_dead_state])[1] += 1  
-                    communication_counts_per_state[agent_2_belief][3] += 1
                 
                 
                 config, reward, terminated, truncated, info = env.step((agent_id, agent_2_communicate))
@@ -246,18 +237,18 @@ for index, row in successful_protocols.iterrows():
                 
                 agent_1_in_dead_state = agent_1_belief == -1
                 
-                reward_2 += reward
+                comm_cost, penalty = reward
+                
+                reward_2 += comm_cost
                                 
                 curr_symbol=info['input_alphabet']
                 
                 agent_2_prev_row_num = agent_2_row_num
 
         
-        if agent_id ==1:
-            reward_2 += reward
-        else:
-            reward_1 += reward
-        
+        reward_2 += penalty
+        reward_1 += penalty
+    
         # cumulative_reward[0] += (GAMMA**t_1)*reward_1
         # cumulative_reward[1] += (GAMMA**t_2)*reward_2
         
@@ -271,7 +262,7 @@ for index, row in successful_protocols.iterrows():
     T_state_dict_list.append(T_state_dict)
     
     # print(dead_state_enter_count)
-    communicate_counts.append(1/1000*np.array(communicate_count))
+    communicate_counts.append(np.round(1/1000*np.array(communicate_count),2))
     
     a1_protocol_list.append(a1_communication_protocol)
     a2_protocol_list.append(a2_communication_protocol)
@@ -279,31 +270,31 @@ for index, row in successful_protocols.iterrows():
     
     cumulative_reward[0] = np.round(cumulative_reward[0]/1000, 2)
     cumulative_reward[1] = np.round(cumulative_reward[1]/1000, 2)
-    success_return_values_x.append(cumulative_reward[0])
-    success_return_values_y.append(cumulative_reward[1])
+    return_values_x.append(cumulative_reward[0])
+    return_values_y.append(cumulative_reward[1])
     joint_return_values.append((cumulative_reward[0], cumulative_reward[1]))
     
 # print(communicate_counts)
 
-successful_protocols["Agent 1 Average Cumulative Reward"] = success_return_values_x
-successful_protocols["Agent 2 Average Cumulative Reward"] = success_return_values_y
+protocols_df["Agent 1 Average Cumulative Reward"] = return_values_x
+protocols_df["Agent 2 Average Cumulative Reward"] = return_values_y
 
 print(pd.DataFrame(joint_return_values, columns=['Agent 1 Return', 'Agent 2 Return']).value_counts())
  
 plt.figure(figsize=(10,6))
-plt.scatter(success_return_values_x[2:], success_return_values_y[2:], color='blue', label='Successful Protocols')
-plt.scatter(success_return_values_x[0], success_return_values_y[0], color='red', label='Full Communication')
-plt.scatter(success_return_values_x[1], success_return_values_y[1], color='green', label='No communication')
+plt.scatter(return_values_x[2:], return_values_y[2:], color='blue', label='Successful Protocols')
+plt.scatter(return_values_x[0], return_values_y[0], color='red', label='Full Communication')
+plt.scatter(return_values_x[1], return_values_y[1], color='green', label='No communication')
 
-for i in range(len(success_return_values_x)):
-    plt.text(success_return_values_x[i], success_return_values_y[i], f"{(success_return_values_x[i], success_return_values_y[i])}", fontsize=6, ha='left',va='bottom', color='purple', rotation=45)
+for i in range(len(return_values_x)):
+    plt.text(return_values_x[i], return_values_y[i], f"{(return_values_x[i], return_values_y[i])}", fontsize=6, ha='left',va='bottom', color='purple', rotation=45)
 
 plt.xlabel('Agent 1 Average Cumulative Reward per word')
 plt.ylabel('Agent 2 Average Cumulative Reward per word')
 # plt.title(' of Communication Protocols')
 plt.legend()
 plt.grid(True)
-plt.savefig('cyclic_problem_w_unobservable_events/cumulative_reward_for_successful_protocols.png')
+plt.savefig('cyclic_problem_w_unobservable_events/cumulative_reward_for_protocols.png')
 plt.show()
 
 communicate_counts = pd.DataFrame(communicate_counts, columns=['Agent 1 Communicate Count', 'Agent 1 Not Communicate Count', 'Agent 2 Communicate Count', 'Agent 2 Not Communicate Count'])
@@ -316,9 +307,9 @@ T_state_df = pd.DataFrame(T_state_dict_list, columns=["(3, 3, 3)","(7, 7, 7)","(
 
 print(T_state_df)
 
-successful_protocols = pd.concat([successful_protocols, communicate_counts, T_state_df], axis=1)
+protocols_df = pd.concat([protocols_df, communicate_counts, T_state_df], axis=1)
 
-successful_protocols.to_csv("cyclic_problem_w_unobservable_events/simulation_successful_protocols_with_stats.csv", index=False)
+protocols_df.to_csv("cyclic_problem_w_unobservable_events/protocols_with_stats.csv", index=False)
 
 for i in range(len(a1_protocol_list)):
     a1_protocol = a1_protocol_list[i]
@@ -336,28 +327,3 @@ for i in range(len(a1_protocol_list)):
         if (a2_protocol[belief_state] != [0,0] and not belief_state[1]):
             print("In state ("+ m_bottom[belief_state[0]]+ ", "+str(belief_state[1])+ ") Num Communicate: " + str(a2_protocol[belief_state][0]) + " Num Not Communicate: " + str(a2_protocol[belief_state][1]))
 
-
-# print("Agent 1 Communication Protocols:")
-# for protocol in a1_protocol_list:
-#     if a1_protocol_list.index(protocol)not in [0,2,3,4,5,10]:
-#         continue
-#     # print(f"\n"+str(protocol))
-#     print()
-#     for belief_state in protocol:
-#         # print(belief_state)
-#         if (protocol[belief_state] != [0,0]):
-#             print("In state ("+ m_bottom[belief_state[0]]+ ", "+str(belief_state[1])+ ") Num Communicate: " + str(protocol[belief_state][0]) + " Num Not Communicate: " + str(protocol[belief_state][1]))
-        
-# print("\nAgent 2 Communication Protocols:")
-# for protocol in a2_protocol_list:
-#     if a2_protocol_list.index(protocol)not in [0,2,3,4,5,10]:
-#         continue
-#     # print(f"\n"+str(protocol))
-#     print()
-#     for belief_state in protocol:
-#         if (protocol[belief_state] != [0,0]):
-#             print("In state ("+ m_bottom[belief_state[0]]+ ", "+str(belief_state[1])+ ") Num Communicate: " + str(protocol[belief_state][0]) + " Num Not Communicate: " + str(protocol[belief_state][1]))
-
-
-# for key, value in communication_counts_per_state.items():
-#     print("State "+ m_bottom[key]+ " Agent 1: " + str(value[0]) + " / "+str(value[1]) + " Agent 2: " + str(value[2]) + " / "+str(value[3]))

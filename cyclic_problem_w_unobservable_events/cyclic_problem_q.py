@@ -5,6 +5,8 @@ import random
 import sys
 sys.path.insert(0, './cyclic_problem_w_unobservable_events')
 import cyclic_problem_env
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 
 PHI = {
     (False, 1 ):0,
@@ -80,8 +82,10 @@ def q_training(env, epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1, print_proce
                 _, agent_1_belief, agent_2_belief = config
                 
                 agent_2_in_dead_state = agent_2_belief == -1
-                    
-                reward_1 += reward
+                
+                comm_cost, penalty = reward
+                
+                reward_1 += comm_cost
                 
                 curr_symbol=info['input_alphabet']
                 
@@ -103,17 +107,17 @@ def q_training(env, epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1, print_proce
                 
                 agent_1_in_dead_state = agent_1_belief == -1
                 
-                reward_2 += reward
+                comm_cost, penalty = reward
+                
+                reward_2 += comm_cost
                 
                 curr_symbol=info['input_alphabet']
                 
                 agent_2_prev_row_num = agent_2_row_num
         
 
-        if agent_id ==1:
-            reward_2 += reward
-        else:
-            reward_1 += reward
+        reward_2 += penalty
+        reward_1 += penalty
         
         # Final Q-value updates
         q_1[agent_1_prev_row_num][agent_1_communicate] += alpha * (reward_1 + gamma * 0 - q_1[agent_1_prev_row_num][agent_1_communicate])

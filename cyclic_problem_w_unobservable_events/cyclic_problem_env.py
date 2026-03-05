@@ -1,9 +1,11 @@
 import gymnasium as gym
 import numpy as np
-from word_generator import RegexWordGenerator
+from word_generator import WordGenerator
 from IPython.display import clear_output
 import time
 import pandas as pd
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 
 gym.register(
     id="CyclicEnv-v0",
@@ -13,6 +15,8 @@ gym.register(
 class CyclicEnv(gym.Env):
 
     COMMUNICATE_COST = 10
+    
+    PENALTY = 100
     
     global_transitions={
         1:{'a': 2, 'b': 5},
@@ -52,10 +56,10 @@ class CyclicEnv(gym.Env):
        -1:{'s':-1, 'a':-1, 'b':-1},
     }
     
-    metadata = {'render_modes': ['human'], 'string_modes': ['training', 'simulation', 'stats', 'test']}
+    metadata = {'render_modes': ['human'], 'string_modes': ['training', 'simulation', 'stats']}
     
     def __init__(self, string_mode="full", render_mode=None, max_star=3):
-        self.string_generator = RegexWordGenerator(max_star=max_star)
+        self.string_generator = WordGenerator(max_star=max_star)
         self.action_space = gym.spaces.Discrete(2)  # Actions: 0: communicate, 1:don't communicate
         self.observation_space = gym.spaces.Box(low=-1, high=5, shape=(3,), dtype=np.int32)
     
@@ -66,8 +70,8 @@ class CyclicEnv(gym.Env):
         self.render_mode = render_mode
         
         if self.string_mode == 'stats':
-            df = pd.read_csv("cyclic_problem_w_unobservable_events/strings.csv")
-            self.string_list = df["strings"].to_list()
+            df = pd.read_csv("cyclic_problem_w_unobservable_events/simulation_words.csv")
+            self.string_list = df["word"].to_list()
             self.index = 0
         
     def reset(self, seed=None, options=None):
@@ -105,7 +109,8 @@ class CyclicEnv(gym.Env):
         if self.string_mode == "simulation" or self.string_mode == "stats":
             return self.simulation_step(action)
         
-        reward = 0
+        comm_cost = 0
+        penalty= 0
         agent_id, communicate = action
         info={}
         terminated = False
@@ -117,14 +122,14 @@ class CyclicEnv(gym.Env):
         if agent_id==1:
             self.agent_1_belief = self.bottom_transitions[self.agent_1_belief].get(curr_symbol)
             if communicate == 1:
-                reward-=self.COMMUNICATE_COST
+                comm_cost-=self.COMMUNICATE_COST
                 self.communication_count+=1
                 self.agent_2_belief = self.bottom_transitions[self.agent_2_belief].get(curr_symbol)
         elif agent_id==2:
             self.agent_2_belief = self.bottom_transitions[self.agent_2_belief].get(curr_symbol)
             if communicate == 1:
                 self.communication_count+=1
-                reward-=self.COMMUNICATE_COST
+                comm_cost-=self.COMMUNICATE_COST
                 self.agent_1_belief = self.bottom_transitions[self.agent_1_belief].get(curr_symbol)
         else:
             raise ValueError("Invalid agent_id. Must be 1 or 2.")
@@ -150,10 +155,10 @@ class CyclicEnv(gym.Env):
         # Penalty Assignment
 
         if self.agent_0_state ==4 and self.agent_1_belief == -1 and self.agent_2_belief == -1:
-            reward -= 100
+            penalty -= self.PENALTY
             terminated = True
         if self.agent_0_state ==7 and self.agent_1_belief == -1 and self.agent_2_belief == -1:
-            reward -=  100
+            penalty -=  self.PENALTY
             terminated = True
         elif self.string[self.string_index]=="$":
             terminated = True
@@ -163,7 +168,7 @@ class CyclicEnv(gym.Env):
         
         info={"input_alphabet":self.string[self.string_index]}
         
-        return np.array(config, dtype=np.int32), reward, terminated, truncated, info
+        return np.array(config, dtype=np.int32), (comm_cost, penalty), terminated, truncated, info
     
     def render(self):
         print(f"Current symbol: '{self.string[self.string_index]}'")
@@ -175,7 +180,8 @@ class CyclicEnv(gym.Env):
         agent_id, communicate = action
         terminated = False
         simulation_result = False # whether the simulation ends in success or failure
-        reward = 0
+        penalty = 0
+        comm_cost = 0
         
         curr_symbol=self.string[self.string_index]
         self.agent_0_state = self.global_transitions[self.agent_0_state].get(curr_symbol)
@@ -183,13 +189,13 @@ class CyclicEnv(gym.Env):
             self.agent_1_belief = self.bottom_transitions[self.agent_1_belief].get(curr_symbol)
             if communicate == 1:
                 self.communication_count+=1
-                reward-=self.COMMUNICATE_COST
+                comm_cost-=self.COMMUNICATE_COST
                 self.agent_2_belief = self.bottom_transitions[self.agent_2_belief].get(curr_symbol)
         elif agent_id==2:
             self.agent_2_belief = self.bottom_transitions[self.agent_2_belief].get(curr_symbol)
             if communicate == 1:
                 self.communication_count+=1
-                reward-=self.COMMUNICATE_COST
+                comm_cost-=self.COMMUNICATE_COST
                 self.agent_1_belief = self.bottom_transitions[self.agent_1_belief].get(curr_symbol)
         else:
             raise ValueError("Invalid agent_id. Must be 1 or 2.")
@@ -240,10 +246,10 @@ class CyclicEnv(gym.Env):
         
         
         if self.agent_0_state ==4 and self.agent_1_belief == -1 and self.agent_2_belief == -1:
-            reward -= 100
+            penalty -= self.PENALTY
             terminated = True
         if self.agent_0_state ==7 and self.agent_1_belief == -1 and self.agent_2_belief == -1:
-            reward -=  100
+            penalty -=   self.PENALTY
             terminated = True
         elif self.string[self.string_index]=="$":
             simulation_result = True
@@ -254,7 +260,7 @@ class CyclicEnv(gym.Env):
         
         info={"input_alphabet":self.string[self.string_index]}
         
-        return np.array(config, dtype=np.int32), reward, terminated, simulation_result, info
+        return np.array(config, dtype=np.int32), (comm_cost, penalty), terminated, simulation_result, info
         
         
     
@@ -277,8 +283,8 @@ class CyclicEnv(gym.Env):
                  "            +-1-+ \n"
                 f"    ------->| {a[0]} |<------- \n"
                  "    |       +---+       | \n"
-                 "    |        / \        | \n"
-                 "    |     b /   \ a     | \n"
+                 "    |        / \\        | \n"
+                 "    |     b /   \\ a     | \n"
                  "    |      V     V      | \n"
                  "    |   +-5-+   +-2-+   | \n"
                 f"  c |   | {a[4]} |   | {a[1]} |   | c \n"

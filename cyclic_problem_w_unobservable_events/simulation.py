@@ -3,6 +3,8 @@ import gymnasium as gym
 import pandas as pd
 import random
 import cyclic_problem_env
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 
 # q_1 = pd.read_csv("./second_cyclic_problem/demo_q1_table.csv")
 # q_2 = pd.read_csv("./second_cyclic_problem/demo_q2_table.csv")
@@ -89,7 +91,9 @@ for i in range(1000):
             
             global_state, agent_1_belief, agent_2_belief = config
             
-            reward_1 += reward
+            commun_cost, penalty = reward
+            
+            reward_1 += comm_cost
             
             agent_2_in_dead_state = agent_2_belief == -1
             
@@ -116,18 +120,18 @@ for i in range(1000):
                 communicate[1] += 1
             config, reward, terminated, simulation_result, info = env.step((agent_id, agent_2_communicate))
             
-            global_state, agent_1_belief, agent_2_belief = config
+            comm_cost, penalty = reward
             
-            reward_2 += reward
+            global_state, agent_1_belief, agent_2_belief = config
+        
+            reward_2 += comm_cost
             
             agent_1_in_dead_state = agent_1_belief == -1
             
             curr_symbol=info['input_alphabet']
 
-    if agent_id ==1:
-        reward_2 += reward
-    else:
-        reward_1 += reward
+    reward_2 += penalty
+    reward_1 += penalty
     
     # cumulative_reward[0] += (GAMMA**t_1)*reward_1
     # cumulative_reward[1] += (GAMMA**t_2)*reward_2

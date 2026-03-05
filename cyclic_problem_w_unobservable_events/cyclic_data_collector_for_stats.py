@@ -4,6 +4,8 @@ import pandas as pd
 import random
 import cyclic_problem_env
 from cyclic_problem_q import q_training
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 
 PHI = {
     (False, 1 ):0,
@@ -29,7 +31,7 @@ fail_rate_count={}
 success_dict = {}
 fail_dict = {}
 over_comm_rate_count={}
-session_count = 1000
+session_count = 100
 
 for i in range(session_count):
     print(str(100*i/session_count)+"%","done" , end="\r")
@@ -77,7 +79,7 @@ for i in range(session_count):
                 else:
                     agent_1_communicate = np.argmax(q_1[agent_1_row_num])
                 
-                config, reward, terminated, simulation_result, info = env.step((agent_id, agent_1_communicate))
+                config, _, terminated, simulation_result, info = env.step((agent_id, agent_1_communicate))
                 
                 global_state, agent_1_belief, agent_2_belief = config
                 
@@ -93,7 +95,7 @@ for i in range(session_count):
                     agent_2_communicate = 0
                 else:        
                     agent_2_communicate = np.argmax(q_2[agent_2_row_num])
-                config, reward, terminated, simulation_result, info = env.step((agent_id, agent_2_communicate))
+                config, _, terminated, simulation_result, info = env.step((agent_id, agent_2_communicate))
                 
                 global_state, agent_1_belief, agent_2_belief = config
                 
@@ -139,18 +141,16 @@ for i in range(session_count):
 
 fail_rate_count_df = pd.DataFrame(list(fail_rate_count.items()), columns=['Fail Rate (%)', 'Count'])
 fail_rate_count_df = fail_rate_count_df.sort_values(by=['Fail Rate (%)'])
-fail_rate_count_df.to_csv("./cyclic_problem_w_unobservable_events/simulation_fail_rate.csv", index=False)
 
 over_comm_rate_count_df = pd.DataFrame(list(over_comm_rate_count.items()), columns=['Over Communication Rate (%)', 'Count'])
 over_comm_rate_count_df = over_comm_rate_count_df.sort_values(by=['Over Communication Rate (%)'])
-over_comm_rate_count_df.to_csv("./cyclic_problem_w_unobservable_events/simulation_over_communication.csv", index=False)
 
 
 success_dict_df = pd.DataFrame(list(success_dict.items()), columns=['Communication Protocols', 'Success Count'])
-success_dict_df.to_csv("./cyclic_problem_w_unobservable_events/simulation_successful_protocols.csv", index=False)
+# success_dict_df.to_csv("./cyclic_problem_w_unobservable_events/successful_protocols.csv", index=False)
 
 fail_dict_df = pd.DataFrame(list(fail_dict.items()), columns=['Communication Protocols', 'Fail Count'])
-fail_dict_df.to_csv("./cyclic_problem_w_unobservable_events/simulation_failed_protocols.csv", index=False)
+# fail_dict_df.to_csv("./cyclic_problem_w_unobservable_events/failed_protocols.csv", index=False)
 
 print("Fail Rate Count over", session_count, "sessions:")
 print(fail_rate_count_df)
@@ -158,6 +158,6 @@ print(fail_rate_count_df)
 print("\nOver Communication Rate Count over", session_count, "sessions:")
 print(over_comm_rate_count_df)
 
-print(success_dict)
+# print(success_dict)
 
 # Go to stats.py to analyze the results
