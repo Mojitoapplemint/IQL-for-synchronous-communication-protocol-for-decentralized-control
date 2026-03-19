@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from word_generator import WordGenerator
 import gymnasium as gym
 import cyclic_problem_env
 import warnings
@@ -41,21 +40,12 @@ PHI = {
 }
 
 
-# regexgen = RegexWordGenerator(max_star=5)
-
-# string_list = []
-
-# for i in range(1000):
-#     string_list.append(regexgen.generate_simulation_word())
-    
-# df = pd.DataFrame(string_list, columns=["strings"])
-# df.to_csv("second_cyclic_problem/strings.csv", index=False)
-
 
 successful_protocols = pd.read_csv("cyclic_problem_w_unobservable_events/successful_protocols.csv")
 baseline_protocols = pd.read_csv("cyclic_problem_w_unobservable_events/baselines.csv")
 
 protocols_df = pd.concat([baseline_protocols, successful_protocols], ignore_index=True)
+
 
 # print(successful_protocols)
 
@@ -84,7 +74,7 @@ for index, row in protocols_df.iterrows():
     
     cumulative_reward = [0,0]
     
-    env = gym.make("CyclicEnv-v0", render_mode = None, string_mode="stats")
+    env = gym.make("CyclicEnv-v0", render_mode = None, string_mode="simulation")
     
     a1_communication_protocol = {
            ( 1, False):[0,0],
@@ -130,11 +120,10 @@ for index, row in protocols_df.iterrows():
         "(4, -1, -1)":0,
         "(7, -1, -1)":0,
         "(3, 3, -1)":0,
-        "(3, 3, 5)":0,
         "(7, 7, -1)":0,
         "(3, -1, 3)":0,
-        "(3, 2, 3)":0,
         "(7, -1, 7)":0,
+        "(3, 3, 5)":0,
     }
     
     
@@ -149,7 +138,9 @@ for index, row in protocols_df.iterrows():
 
         global_state, agent_1_belief, agent_2_belief = config
 
-        curr_symbol=info['input_alphabet']
+        curr_event=info['curr_event']
+        word = info['word']
+        # print(word)
 
         agent_1_prev_row_num = -1
         agent_2_prev_row_num = -1
@@ -164,7 +155,7 @@ for index, row in protocols_df.iterrows():
         t_2=1        
         
         while not (terminated):
-            if curr_symbol=='a':
+            if curr_event=='a':
                 
                 agent_id=1
                 
@@ -198,13 +189,13 @@ for index, row in protocols_df.iterrows():
                 
                 reward_1 += comm_cost
                 
-                curr_symbol=info['input_alphabet']
+                curr_event=info['curr_event']
                 
                 agent_1_prev_row_num = agent_1_row_num
                 
                 
                        
-            if curr_symbol=='b':
+            if curr_event=='b':
 
                 agent_id=2
                 
@@ -241,7 +232,7 @@ for index, row in protocols_df.iterrows():
                 
                 reward_2 += comm_cost
                                 
-                curr_symbol=info['input_alphabet']
+                curr_event=info['curr_event']
                 
                 agent_2_prev_row_num = agent_2_row_num
 
@@ -262,14 +253,14 @@ for index, row in protocols_df.iterrows():
     T_state_dict_list.append(T_state_dict)
     
     # print(dead_state_enter_count)
-    communicate_counts.append(np.round(1/1000*np.array(communicate_count),2))
+    communicate_counts.append(np.round(1/500*np.array(communicate_count),2))
     
     a1_protocol_list.append(a1_communication_protocol)
     a2_protocol_list.append(a2_communication_protocol)
 
     
-    cumulative_reward[0] = np.round(cumulative_reward[0]/1000, 2)
-    cumulative_reward[1] = np.round(cumulative_reward[1]/1000, 2)
+    cumulative_reward[0] = np.round(cumulative_reward[0]/500, 2)
+    cumulative_reward[1] = np.round(cumulative_reward[1]/500, 2)
     return_values_x.append(cumulative_reward[0])
     return_values_y.append(cumulative_reward[1])
     joint_return_values.append((cumulative_reward[0], cumulative_reward[1]))
@@ -303,7 +294,7 @@ print(communicate_counts)
 
 # print(T_state_dict_list)
 
-T_state_df = pd.DataFrame(T_state_dict_list, columns=["(3, 3, 3)","(7, 7, 7)","(4, -1, -1)","(7, -1, -1)","(3, 3, -1)", "(3, 3, 5)", "(7, 7, -1)","(3, -1, 3)","(7, -1, 7)"])
+T_state_df = pd.DataFrame(T_state_dict_list, columns=T_state_dict.keys())
 
 print(T_state_df)
 

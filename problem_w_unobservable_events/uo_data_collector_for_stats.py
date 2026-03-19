@@ -200,7 +200,7 @@ fail_rate_count={}
 over_comm_rate_count={}
 success_dict = {}
 result_dict = {}
-session_count = 100
+session_count = 1000
 
 for i in range(session_count):
     print(str(100*i/session_count)+"%","done" , end="\r")

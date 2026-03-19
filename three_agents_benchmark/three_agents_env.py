@@ -12,6 +12,7 @@ gym.register(
 
 class ThreeAgentsEnv(gym.Env):
     COMMUNICATION_COST = 30
+    PENALTY = 100
     
     m_L_transitions = {
         1: {'a':2, 'b':7, 'c':12},
@@ -181,7 +182,7 @@ class ThreeAgentsEnv(gym.Env):
         
         if self.system_state in [17,18,19,20,21,22] and self.agent_1_state == -1 and self.agent_2_state == -1 and self.agent_3_state == -1:
             terminated = True
-            reward -= 100
+            reward -= self.PENALTY
         
         elif curr_event == '$':
             terminated = True

@@ -5,10 +5,10 @@ import gymnasium as gym
 import three_agents_env
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
-from three_agent_q import S, ACTIONS
+from three_agent_q import S, ACTIONS, FOLDER_NAME
 
-successful_protocols = pd.read_csv('three_agents_benchmark/successful_protocols.csv')
-# successful_protocols = pd.read_csv('three_agents_benchmark/successful_protocols_with_returns.csv')
+successful_protocols = pd.read_csv(f'{FOLDER_NAME}/successful_protocols.csv')
+# successful_protocols = pd.read_csv(f'{FOLDER_NAME}/successful_protocols_with_returns.csv')
 # successful_protocols = successful_protocols[successful_protocols["Agent 1 Return"]==0]
 
 returns_dict = {}
@@ -167,7 +167,7 @@ successful_protocols["Agent 1 Return"] = return_value_df["Agent 1 Return"]
 successful_protocols["Agent 2 Return"] = return_value_df["Agent 2 Return"]
 successful_protocols["Agent 3 Return"] = return_value_df["Agent 3 Return"]
 
-successful_protocols.to_csv("three_agents_benchmark/successful_protocols_with_returns.csv", index=False)
+successful_protocols.to_csv(f'{FOLDER_NAME}/successful_protocols_with_returns.csv', index=False)
 
 for key in communication_counts:
     counts = communication_counts[key]

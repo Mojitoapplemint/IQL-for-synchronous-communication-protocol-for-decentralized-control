@@ -21,9 +21,9 @@ class CyclicEnv(gym.Env):
     global_transitions={
         1:{'a': 2, 'b': 5},
         2:{'b': 3},
-        3:{'c':1, 's': 4},
+        3:{'d':1, 's': 4},
         5:{'a': 6},
-        6:{'c':1,'s':7},
+        6:{'d':1,'s':7},
     }
     
     m_bottom={
@@ -56,7 +56,7 @@ class CyclicEnv(gym.Env):
        -1:{'s':-1, 'a':-1, 'b':-1},
     }
     
-    metadata = {'render_modes': ['human'], 'string_modes': ['training', 'simulation', 'stats']}
+    metadata = {'render_modes': ['human'], 'string_modes': ['training', 'simulation']}
     
     def __init__(self, string_mode="full", render_mode=None, max_star=3):
         self.string_generator = WordGenerator(max_star=max_star)
@@ -69,40 +69,34 @@ class CyclicEnv(gym.Env):
         assert render_mode is None or render_mode in self.metadata['render_modes']
         self.render_mode = render_mode
         
-        if self.string_mode == 'stats':
-            df = pd.read_csv("cyclic_problem_w_unobservable_events/simulation_words.csv")
-            self.string_list = df["word"].to_list()
-            self.index = 0
+        df = pd.read_csv("cyclic_problem_w_unobservable_events/simulation_words.csv")
+        self.simulation_words = df["word"].to_list()
+        self.simulation_words_index = 0
         
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
         if self.string_mode == "training":
-            self.string=self.string_generator.generate_training_word()+"$"
+            self.word=self.string_generator.generate_training_word()+"$"
         elif self.string_mode == "simulation":
-            self.string = "abcabcabs$"
-            # self.string=self.string_generator.generate_simulation_word()+"$"
-        elif self.string_mode == "stats":
-            self.string=self.string_list[self.index]+"$"
-            self.index = (self.index + 1) % len(self.string_list)
-        self.string_index=0
+            self.word=self.simulation_words[self.simulation_words_index]+"$"
+            self.simulation_words_index = (self.simulation_words_index + 1) % len(self.simulation_words)
+        self.word_index=0
         self.communication_count=0
         self.agent_0_state = 1
         self.agent_1_belief = 1
         self.agent_2_belief = 1
         
         if self.render_mode == 'human':
-            print(f"\nNew Episode: string_mode:{self.string_mode}, string: {self.string}")
+            print(f"\nNew Episode: string_mode:{self.string_mode}, word: {self.word}")
             if self.string_mode == "simulation":
                 print(f"\nStarting Simulation Mode. This is not a training episode.")
                 self.simulate()
             else:
                 self.render()
         
-        curr_symbol=self.string[self.string_index]
-        
         config=(self.agent_0_state, self.agent_1_belief, self.agent_2_belief)
         
-        info={"input_alphabet":self.string[self.string_index], "string":self.string}
+        info={"curr_event":self.word[self.word_index], "word":self.word}
         return np.array(config, dtype=np.int32), info
         
     def step(self, action):
@@ -116,7 +110,7 @@ class CyclicEnv(gym.Env):
         terminated = False
         truncated = False
         
-        curr_symbol=self.string[self.string_index]
+        curr_symbol=self.word[self.word_index]
         
         self.agent_0_state = self.agent_0_transitions[self.agent_0_state].get(curr_symbol)
         if agent_id==1:
@@ -138,9 +132,9 @@ class CyclicEnv(gym.Env):
             print(f"\nAgent {agent_id} {'communicated' if communicate==1 else 'did not communicate'} on '{curr_symbol}'")
             self.render()
         
-        self.string_index += 1
+        self.word_index += 1
         
-        curr_symbol=self.string[self.string_index]
+        curr_symbol=self.word[self.word_index]
         
         if curr_symbol=='s':
             self.agent_0_state=self.agent_0_transitions[self.agent_0_state].get('s')
@@ -149,8 +143,8 @@ class CyclicEnv(gym.Env):
         
             if self.render_mode == 'human':
                 self.render()
-            self.string_index += 1
-            curr_symbol=self.string[self.string_index]
+            self.word_index += 1
+            curr_symbol=self.word[self.word_index]
             
         # Penalty Assignment
 
@@ -160,18 +154,18 @@ class CyclicEnv(gym.Env):
         if self.agent_0_state ==7 and self.agent_1_belief == -1 and self.agent_2_belief == -1:
             penalty -=  self.PENALTY
             terminated = True
-        elif self.string[self.string_index]=="$":
+        elif self.word[self.word_index]=="$":
             terminated = True
 
         
         config = (self.agent_0_state, self.agent_1_belief, self.agent_2_belief)
         
-        info={"input_alphabet":self.string[self.string_index]}
+        info={"curr_event":self.word[self.word_index]}
         
         return np.array(config, dtype=np.int32), (comm_cost, penalty), terminated, truncated, info
     
     def render(self):
-        print(f"Current symbol: '{self.string[self.string_index]}'")
+        print(f"Current symbol: '{self.word[self.word_index]}'")
         print(self.agent_0_state,self.agent_1_belief, self.agent_2_belief)
         print(f"Config: <{self.agent_0_state}:{self.m_bottom[self.agent_0_state]}, {self.agent_1_belief}:{self.m_bottom[self.agent_1_belief]}, {self.agent_2_belief}:{self.m_bottom[self.agent_2_belief]}>")
          
@@ -183,7 +177,7 @@ class CyclicEnv(gym.Env):
         penalty = 0
         comm_cost = 0
         
-        curr_symbol=self.string[self.string_index]
+        curr_symbol=self.word[self.word_index]
         self.agent_0_state = self.global_transitions[self.agent_0_state].get(curr_symbol)
         if agent_id==1:
             self.agent_1_belief = self.bottom_transitions[self.agent_1_belief].get(curr_symbol)
@@ -204,8 +198,8 @@ class CyclicEnv(gym.Env):
             print(f"\nAgent {agent_id} {'communicated' if communicate==1 else 'did not communicate'} on '{curr_symbol}'")
             self.simulate()
             
-        self.string_index += 1
-        curr_symbol=self.string[self.string_index]
+        self.word_index += 1
+        curr_symbol=self.word[self.word_index]
         
         
         if curr_symbol=='s':
@@ -215,8 +209,8 @@ class CyclicEnv(gym.Env):
                 self.agent_2_belief=self.bottom_transitions[self.agent_2_belief].get('s')
                 if self.render_mode == 'human':
                     self.simulate()
-                self.string_index += 1
-                curr_symbol=self.string[self.string_index]
+                self.word_index += 1
+                curr_symbol=self.word[self.word_index]
                 
             elif self.agent_0_state ==3:
                 agent_1_disable_s = (self.agent_1_belief ==3)
@@ -225,8 +219,8 @@ class CyclicEnv(gym.Env):
                 if agent_1_disable_s or agent_2_disable_s:
                     if self.render_mode == 'human':
                         self.simulate(agent_1_disable_s, agent_2_disable_s)
-                    self.string_index+=1
-                    curr_symbol=self.string[self.string_index]               
+                    self.word_index+=1
+                    curr_symbol=self.word[self.word_index]               
                 
                 else:
                     self.agent_0_state=self.global_transitions[self.agent_0_state].get('s')
@@ -237,12 +231,12 @@ class CyclicEnv(gym.Env):
                         print("Both agents failed to disable 's' in state 3")
                         self.simulate(agent_1_disable_s, agent_2_disable_s)
                     
-        if curr_symbol == 'c':
-            self.agent_0_state = self.global_transitions[self.agent_0_state].get('c')
+        if curr_symbol == 'd':
+            self.agent_0_state = self.global_transitions[self.agent_0_state].get('d')
             if self.render_mode == 'human':
                 self.simulate()
-            self.string_index += 1
-            curr_symbol=self.string[self.string_index]
+            self.word_index += 1
+            curr_symbol=self.word[self.word_index]
         
         
         if self.agent_0_state ==4 and self.agent_1_belief == -1 and self.agent_2_belief == -1:
@@ -251,14 +245,14 @@ class CyclicEnv(gym.Env):
         if self.agent_0_state ==7 and self.agent_1_belief == -1 and self.agent_2_belief == -1:
             penalty -=   self.PENALTY
             terminated = True
-        elif self.string[self.string_index]=="$":
+        elif self.word[self.word_index]=="$":
             simulation_result = True
             terminated = True
 
         
         config = (self.agent_0_state, self.agent_1_belief, self.agent_2_belief)
         
-        info={"input_alphabet":self.string[self.string_index]}
+        info={"curr_event":self.word[self.word_index]}
         
         return np.array(config, dtype=np.int32), (comm_cost, penalty), terminated, simulation_result, info
         
@@ -268,7 +262,7 @@ class CyclicEnv(gym.Env):
         a = [" " for _ in range(7)]
         a[self.agent_0_state-1] = "#"
         
-        print(f"global state: {self.agent_0_state},\n agent 1's belief: {self.agent_1_belief}:{self.m_bottom[self.agent_1_belief]},\n agent 2's belief: {self.agent_2_belief}:{self.m_bottom[self.agent_2_belief]}>,\n Current symbol: '{self.string[self.string_index]}', # comm: {self.communication_count}")
+        print(f"global state: {self.agent_0_state},\n agent 1's belief: {self.agent_1_belief}:{self.m_bottom[self.agent_1_belief]},\n agent 2's belief: {self.agent_2_belief}:{self.m_bottom[self.agent_2_belief]}>,\n Current symbol: '{self.word[self.word_index]}', # comm: {self.communication_count}")
         
         block = "|"
         
@@ -287,7 +281,7 @@ class CyclicEnv(gym.Env):
                  "    |     b /   \\ a     | \n"
                  "    |      V     V      | \n"
                  "    |   +-5-+   +-2-+   | \n"
-                f"  c |   | {a[4]} |   | {a[1]} |   | c \n"
+                f"  d |   | {a[4]} |   | {a[1]} |   | d \n"
                  "    |   +---+   +---+   | \n"
                  "    |   a |       | b   | \n"
                  "    |     V       V     | \n"

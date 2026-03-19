@@ -110,6 +110,13 @@ ACTIONS = {
     3:[1,1],
 }
 
+def epsilon_decay(min_epsilon, episode, max_epochs):
+    if episode <= 0.2*max_epochs:
+        return 1.0
+    
+    initial_epsilon = 1.0
+    return max(min_epsilon, initial_epsilon-(episode/(max_epochs)))
+
 def get_action(q_table, agent_j_in_dead_state, agent_k_in_dead_state, row_num, epsilon):
     
     # Both agents are in dead state, only action [0,0] is possible
@@ -132,13 +139,13 @@ def get_action(q_table, agent_j_in_dead_state, agent_k_in_dead_state, row_num, e
     else:
         return  np.argmax(q_table[row_num])  # Exploit
 
-def q_training(env, epochs=10000, alpha = 0.1, gamma=0.1, epsilon=0.1, print_process=False):
+def q_training(env, max_epochs=10000, alpha = 0.1, gamma=0.1, min_epsilon=0.1, print_process=False):
     q_1 = np.zeros((len(S), env.action_space.n))
     q_2 = np.zeros((len(S), env.action_space.n))
     q_3 = np.zeros((len(S), env.action_space.n))
-    for episode in range(epochs):
+    for episode in range(max_epochs):
         if (print_process and episode%100==0):
-            print(str(100*episode/epochs)+"%","done" , end="\r")
+            print(str(100*episode/max_epochs)+"%","done" , end="\r")
             
         config, info = env.reset()
         
@@ -163,6 +170,8 @@ def q_training(env, epochs=10000, alpha = 0.1, gamma=0.1, epsilon=0.1, print_pro
         a1_action = None
         a2_action = None
         a3_action = None
+        
+        epsilon = epsilon_decay(min_epsilon, episode, max_epochs)
         
         while not terminated:
             if curr_event == 'a':
@@ -268,13 +277,3 @@ def q_training(env, epochs=10000, alpha = 0.1, gamma=0.1, epsilon=0.1, print_pro
     
     return q_1, q_2, q_3
 
-env = gym.make('ThreeAgentsEnv-v0', render_mode=None, string_mode="training")
-q_1, q_2, q_3 = q_training(env, epochs=20000, alpha = 0.001, gamma=0.1, epsilon=0.1, print_process=True)
-
-q_1_df = pd.DataFrame(q_1, columns=["[X,X]", "[X,O]", "[O,X]", "[O,O]"])    
-q_2_df = pd.DataFrame(q_2, columns=["[X,X]", "[X,O]", "[O,X]", "[O,O]"])    
-q_3_df = pd.DataFrame(q_3, columns=["[X,X]", "[X,O]", "[O,X]", "[O,O]"])  
-  
-q_1_df.to_csv(f"{FOLDER_NAME}/three_agents_q1.csv", index=False)
-q_2_df.to_csv(f"{FOLDER_NAME}/three_agents_q2.csv", index=False)
-q_3_df.to_csv(f"{FOLDER_NAME}/three_agents_q3.csv", index=False)

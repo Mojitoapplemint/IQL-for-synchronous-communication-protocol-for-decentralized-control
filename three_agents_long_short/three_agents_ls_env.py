@@ -14,8 +14,8 @@ class ThreeAgentsLSEnv(gym.Env):
     COMMUNICATION_COST = 2.5
     EXPENSIVE_COMMUNICATION_COST = 100
     EXPENSIVE_COMMUNICATION = ['x', 'y']
-    D_PENALTY = 300
-    E_PENALTY = 100
+    D_PENALTY = 400
+    E_PENALTY = 0
     
     D_PEN_STATES = {10,13}
     
@@ -66,8 +66,8 @@ class ThreeAgentsLSEnv(gym.Env):
         
         self.word_generator = WordGenerator(max_star=max_star)
         
-        self.words_for_stats = pd.read_csv('three_agents_long_short/words_for_stats.csv')['word'].tolist()
-        self.words_for_stats_index = 0
+        self.simulation_words = pd.read_csv('three_agents_long_short/words_for_stats.csv')['word'].tolist()
+        self.simulation_words_index = 0
     
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
@@ -84,17 +84,13 @@ class ThreeAgentsLSEnv(gym.Env):
                 
             
         elif self.string_mode == 'simulation':
-            self.word = self.words_for_stats[self.words_for_stats_index] + '$'
-            self.words_for_stats_index += 1
+            self.word = self.simulation_words[self.simulation_words_index] + '$'
+            self.simulation_words_index += 1
             self.curr_event = self.word[self.word_index]
                         
             if self.render_mode == 'human':
                 print(f"\n===========New Simulation=========== \nSimulation word: {self.word}")
                 self.simulate()
-        
-        # elif self.string_mode == 'stats':
-        #     self.word = self.words_for_stats[self.words_for_stats_index] + '$'
-        #     self.words_for_stats_index += 1
         
         self.curr_event = self.word[self.word_index]
         
@@ -107,10 +103,10 @@ class ThreeAgentsLSEnv(gym.Env):
         #     self.word_index += 1
         #     self.curr_event = self.word[self.word_index]
                 
-        obs = (self.system_state, self.agent_1_state, self.agent_2_state, self.agent_3_state)
+        v_state = (self.system_state, self.agent_1_state, self.agent_2_state, self.agent_3_state)
         info  = {'word': self.word, 'curr_event': self.curr_event}
         
-        return obs, info
+        return v_state, info
                 
     def v_transition(self, vector_label):
         if self.string_mode == 'training':
@@ -195,16 +191,6 @@ class ThreeAgentsLSEnv(gym.Env):
             self.word_index += 1
             self.curr_event = self.word[self.word_index]
             
-            # Check Termination and penalized states
-            if (self.system_state in self.D_PEN_STATES) and self.agent_2_state ==-1:
-                terminated = True
-                reward = -self.D_PENALTY
-            if (self.system_state in self.E_PEN_STATES) and self.agent_2_state ==-1:
-                terminated = True
-                reward = -self.E_PENALTY
-            elif self.curr_event == '$':
-                terminated = True
-            
         # State transition for 's' for simulation or stats mode
         if self.curr_event == 's' and (self.string_mode == 'simulation' or self.string_mode == 'stats'):
             
@@ -218,29 +204,31 @@ class ThreeAgentsLSEnv(gym.Env):
                 self.render()
                 self.simulate(agent_2_disable=agent_2_disable)
             
-            # Updating current event to '$' indicating end of the word
-            self.word_index += 1
-            self.curr_event = self.word[self.word_index]
             
             
             # Check simulation results based on system state and agent 2's disable status
             if (self.system_state in self.E_PEN_STATES) and not (agent_2_disable):
                 simulation_result = True
-            
+
             if (self.system_state in self.STATES_DISABLE_SIGMA) and (agent_2_disable):
                 simulation_result = True
-            
-            if (self.system_state in self.D_PEN_STATES) and self.agent_2_state ==-1:
-                terminated = True
-                reward = -self.D_PENALTY
-            if (self.system_state in self.E_PEN_STATES) and self.agent_2_state ==-1:
-                terminated = True
-                reward = -self.E_PENALTY
-            elif self.curr_event == '$':
-                terminated = True
+                
+            # Updating current event to '$' indicating end of the word
+            self.word_index += 1
+            self.curr_event = self.word[self.word_index]
+        
+        
+        if (self.system_state in self.D_PEN_STATES) and self.agent_2_state ==-1:
+            terminated = True
+            reward = -self.D_PENALTY
+        if (self.system_state in self.E_PEN_STATES) and self.agent_2_state ==-1:
+            terminated = True
+            reward = -self.E_PENALTY
+        elif self.curr_event == '$':
+            terminated = True
         
 
-        obs = (self.system_state, self.agent_1_state, self.agent_2_state, self.agent_3_state)
+        v_state = (self.system_state, self.agent_1_state, self.agent_2_state, self.agent_3_state)
         info = {'curr_event': self.curr_event}
         
         if self.string_mode == 'simulation' or self.string_mode == 'stats':
@@ -248,7 +236,7 @@ class ThreeAgentsLSEnv(gym.Env):
         else:
             truncated = False
         
-        return np.array(obs, dtype=np.int32), (communication_cost, reward), terminated, truncated, info
+        return np.array(v_state, dtype=np.int32), (communication_cost, reward), terminated, truncated, info
         
     def render(self, sender_1=None, communicate_1=None, receiver_1=None, sender_2=None, communicate_2=None, receiver_2=None):
         print(f"\nEvent {self.curr_event} occurred")

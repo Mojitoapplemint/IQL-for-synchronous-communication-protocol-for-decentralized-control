@@ -203,7 +203,7 @@ m_L_bot={
 
 
 # successful_protocols = pd.read_csv("problem_w_unobservable_events/baselines.csv")
-successful_protocols = pd.read_csv("problem_w_unobservable_events/exp2_successful_protocols.csv")
+successful_protocols = pd.read_csv("problem_w_unobservable_events/exp3_successful_protocols.csv")
 # successful_protocols = pd.read_csv("problem_w_unobservable_events/exp2_successful_protocols.csv")
 
 success_return_values_x = []
@@ -454,10 +454,10 @@ for index, row in successful_protocols.iterrows():
     a1_protocol_list.append(a1_communication_protocol)
     a2_protocol_list.append(a2_communication_protocol)
     
-    communication_counts.append(1/1000*np.array(communication_count))
+    communication_counts.append(1/300*np.array(communication_count))
     
-    return_value[0] = np.round(return_value[0]/1000, 2)
-    return_value[1] = np.round(return_value[1]/1000, 2)
+    return_value[0] = np.round(return_value[0]/300, 2)
+    return_value[1] = np.round(return_value[1]/300, 2)
     success_return_values_x.append(return_value[0])
     success_return_values_y.append(return_value[1])
     joint_return_values.append((return_value[0], return_value[1]))

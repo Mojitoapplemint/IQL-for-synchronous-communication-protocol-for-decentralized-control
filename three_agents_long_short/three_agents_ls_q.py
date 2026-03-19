@@ -263,11 +263,11 @@ ACTIONS_INV ={
 
 
 def epsilon_decay(min_epsilon, episode, max_epochs):
-    if episode <= 0.2*max_epochs:
+    if episode <= 0.6*max_epochs:
         return 1.0
     
     initial_epsilon = 1.0
-    return max(min_epsilon, initial_epsilon-(episode/(0.9*max_epochs)))
+    return max(min_epsilon, initial_epsilon-(episode/(max_epochs)))
     # return min_epsilon
 
 def get_action(q_table, agent_j_in_dead_state, agent_k_in_dead_state, row_num, epsilon):
@@ -292,8 +292,6 @@ def get_action(q_table, agent_j_in_dead_state, agent_k_in_dead_state, row_num, e
         return random.randint(0, 3)  # Explore
     else:
         return np.argmax(q_table[row_num])  # Exploit
-
-device = "cpu"
 
 
 def q_training(env, epochs=10000, alpha = 0.1, gamma=0.1, min_epsilon=0.1, print_process=False):

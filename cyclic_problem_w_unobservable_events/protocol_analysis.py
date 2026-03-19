@@ -41,11 +41,14 @@ PHI = {
 
 protocols_data = pd.read_csv("cyclic_problem_w_unobservable_events/protocols_with_stats.csv")
 
-returns_data = protocols_data[['Agent 1 Average Cumulative Reward', 'Agent 2 Average Cumulative Reward']]
+cum_reward_for_full_communication = float(protocols_data.iloc[[0]]["Agent 1 Average Cumulative Reward"])
 
 
-a = protocols_data[(protocols_data['Agent 1 Average Cumulative Reward']==-40.48) & (protocols_data['Agent 2 Average Cumulative Reward']==0)]
-# a = protocols_data[(protocols_data['Agent 1 Average Cumulative Reward']==0) & (protocols_data['Agent 2 Average Cumulative Reward']==-40.48)]
+print(cum_reward_for_full_communication)
+
+first_protocol = protocols_data[(protocols_data['Agent 1 Average Cumulative Reward']==cum_reward_for_full_communication) & (protocols_data['Agent 2 Average Cumulative Reward']==0)]
+second_protocol = protocols_data[(protocols_data['Agent 1 Average Cumulative Reward']==0) & (protocols_data['Agent 2 Average Cumulative Reward']==cum_reward_for_full_communication)]
+minor_protocol = protocols_data.loc[[i for i in range(26) if i not in first_protocol.index and i not in second_protocol.index]]
 
 
 a1_protocol_list=[]
@@ -53,7 +56,7 @@ a2_protocol_list=[]
 
 
 
-for index, row in a.iterrows():
+for index, row in first_protocol.iterrows():
     # print(f"{index} / {len(successful_protocols)}")
 
     
@@ -66,7 +69,7 @@ for index, row in a.iterrows():
     q_2 = protocol[16:]
     
     
-    env = gym.make("CyclicEnv-v0", render_mode = None, string_mode="stats")
+    env = gym.make("CyclicEnv-v0", render_mode = None, string_mode="simulation")
     
     a1_communication_protocol = {
            ( 1, False):[0,0],
@@ -118,7 +121,7 @@ for index, row in a.iterrows():
 
         global_state, agent_1_belief, agent_2_belief = config
 
-        curr_symbol=info['input_alphabet']
+        curr_event=info['curr_event']
 
         agent_1_prev_row_num = -1
         agent_2_prev_row_num = -1
@@ -133,7 +136,7 @@ for index, row in a.iterrows():
         t_2=1        
         
         while not (terminated):
-            if curr_symbol=='a':
+            if curr_event=='a':
                 
                 agent_id=1
             
@@ -161,13 +164,13 @@ for index, row in a.iterrows():
                 
                 reward_1 += comm_cost
                 
-                curr_symbol=info['input_alphabet']
+                curr_event=info['curr_event']
                 
                 agent_1_prev_row_num = agent_1_row_num
                 
                 
                        
-            if curr_symbol=='b':
+            if curr_event=='b':
 
                 agent_id=2
                 
@@ -197,7 +200,7 @@ for index, row in a.iterrows():
                 
                 reward_2 += comm_cost
                                 
-                curr_symbol=info['input_alphabet']
+                curr_event=info['curr_event']
                 
                 agent_2_prev_row_num = agent_2_row_num
         

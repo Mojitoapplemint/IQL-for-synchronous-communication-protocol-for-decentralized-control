@@ -8,13 +8,14 @@ from three_agents_ls_q import S_1, S_3, ACTIONS,A1_OBS, A3_OBS, get_action, q_tr
 
 
 successful_protocol_dict = {}
+failed_protocol_dict = {}
 result_dict = {}
-session_count = 1000
+session_count = 100
 for i in range(session_count):
     print(f"{i}/{session_count} done", end="\r")
     env = gym.make('ThreeAgentsLSEnv-v0', render_mode=None, string_mode="training")
     
-    q_1, q_3 = q_training(env, epochs=100000, alpha=0.001, gamma=0.5, min_epsilon=0.1, print_process=False)
+    q_1, q_3 = q_training(env, epochs=200000, alpha=0.0005, gamma=0.4, min_epsilon=0.01, print_process=False)
     
     env = gym.make('ThreeAgentsLSEnv-v0', render_mode=None, string_mode="simulation")
     
@@ -82,35 +83,44 @@ for i in range(session_count):
 
 
 
+    a1_protocol = np.zeros((q_1.shape[0]), dtype=int)
+    a3_protocol = np.zeros((q_3.shape[0]), dtype=int)
+    
+    for i in range(q_1.shape[0]):
+        if list(q_1[i]).count(0)!=4:
+            a1_protocol[i]=np.argmax([item for item in q_1[i] if item !=0])
+        else:
+            a1_protocol[i]=0
+    
+    for i in range(q_3.shape[0]):
+        if list(q_3[i]).count(0)!=4:
+            a3_protocol[i]=np.argmax([item for item in q_3[i] if item !=0])
+        else:
+            a3_protocol[i]=0
+    
+    protocol_key = (tuple(a1_protocol), tuple(a3_protocol))
+    
     if fail_count == 0:
-        a1_protocol = np.zeros((q_1.shape[0]), dtype=int)
-        a3_protocol = np.zeros((q_3.shape[0]), dtype=int)
-        
-        for i in range(q_1.shape[0]):
-            if list(q_1[i]).count(0)!=4:
-                a1_protocol[i]=np.argmax([item for item in q_1[i] if item !=0])
-            else:
-                a1_protocol[i]=0
-        
-        for i in range(q_3.shape[0]):
-            if list(q_3[i]).count(0)!=4:
-                a3_protocol[i]=np.argmax([item for item in q_3[i] if item !=0])
-            else:
-                a3_protocol[i]=0
-        
-        protocol_key = (tuple(a1_protocol), tuple(a3_protocol))
         if successful_protocol_dict.get(protocol_key) is None:
             successful_protocol_dict[protocol_key] = 1
         else:
             successful_protocol_dict[protocol_key] += 1
+    else:
+        if failed_protocol_dict.get(protocol_key) is None:
+            failed_protocol_dict[protocol_key] = 1
+        else:
+            failed_protocol_dict[protocol_key] += 1
 
 successful_protocols_df = pd.DataFrame(list(successful_protocol_dict.items()), columns=['Protocol', 'Counts'])
 
-print(successful_protocol_dict)
+failed_protocol_df = pd.DataFrame(list(failed_protocol_dict.items()), columns=['Protocol', 'Counts'])
+
+# print(successful_protocol_dict)
 
 print(f"{np.sum(successful_protocols_df['Counts'])}/{session_count} sessions converged to a successful protocol.")
 
-for key in result_dict:
-    print(f"<{key[0]}, {key[1]}, {key[2]}, {key[3]}> => Count: {result_dict[key]}")
+# for key in result_dict:
+#     print(f"<{key[0]}, {key[1]}, {key[2]}, {key[3]}> => Count: {result_dict[key]}")
 
-successful_protocols_df.to_csv(f'{FOLDER_NAME}/successful_protocols.csv', index=False)
+successful_protocols_df.to_csv(f'{FOLDER_NAME}/successful_protocols_exp_3.csv', index=False)
+failed_protocol_df.to_csv(f'{FOLDER_NAME}/failed_protocols_exp_3.csv', index=False)

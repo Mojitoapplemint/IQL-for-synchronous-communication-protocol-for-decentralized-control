@@ -14,5 +14,5 @@ q_1, q_3 = q_training(env, epochs=1000000, alpha=0.001, gamma=0.99, min_epsilon=
 q_1_df = pd.DataFrame(q_1, columns=["[X,X]", "[X,O]", "[O,X]", "[O,O]"])
 q_3_df = pd.DataFrame(q_3, columns=["[X,X]", "[X,O]", "[O,X]", "[O,O]"])
 
-q_1_df.to_csv(f"{FOLDER_NAME}/three_agents_exp_q1.csv", index=False)
-q_3_df.to_csv(f"{FOLDER_NAME}/three_agents_exp_q3.csv", index=False)
+q_1_df.to_csv(f"{FOLDER_NAME}/q1.csv", index=False)
+q_3_df.to_csv(f"{FOLDER_NAME}/q3.csv", index=False)

@@ -4,9 +4,7 @@ import pandas as pd
 import three_agents_env
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
-from three_agent_q import q_training, S, ACTIONS
-
-FOLDER_NAME = 'three_agents_benchmark'
+from three_agent_q import q_training, S, ACTIONS, FOLDER_NAME
 
 def get_action(q_table, agent_j_in_dead_state, agent_k_in_dead_state, row_num):
     
@@ -34,7 +32,7 @@ for i in range(session_count):
     
     env = gym.make('ThreeAgentsEnv-v0', render_mode=None, string_mode="training")
     
-    q_1, q_2, q_3 = q_training(env, epochs=20000, alpha=0.001, gamma=0.1, epsilon=0.1)
+    q_1, q_2, q_3 = q_training(env, max_epochs=10000, alpha=0.001, gamma=0.5, min_epsilon=0.1)
     
     env = gym.make('ThreeAgentsEnv-v0', render_mode=None, string_mode="simulation")
     

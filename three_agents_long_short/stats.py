@@ -7,18 +7,23 @@ import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 from three_agents_ls_q import S_1, S_3, ACTIONS,A1_OBS, A3_OBS, get_action, FOLDER_NAME
 
-successful_protocols = pd.read_csv(f'{FOLDER_NAME}/successful_protocols.csv')
+
+file_name = 'successful_protocols_exp_3'
+# successful_protocols = pd.read_csv(f'{FOLDER_NAME}/failed_protocols_exp_3.csv')
+
+successful_protocols = pd.read_csv(f'{FOLDER_NAME}/{file_name}.csv')
 # successful_protocols = pd.read_csv('three_agents_benchmark/successful_protocols_with_returns.csv')
 # successful_protocols = successful_protocols[successful_protocols["Agent 1 Return"]==0]
 
 returns_dict = {}
 
-communication_counts = {
-    "caxs$":[], 
-    "cays$":[], 
-    "acys$":[], 
-    "acxs$":[], 
-}
+communication_counts_x_in_5 = []
+communication_counts_y_in_4 = []
+
+communication_counts_a = []
+communication_counts_c = []
+
+T_state_dict_list = []
 
 return_value_list = []
 
@@ -30,8 +35,15 @@ for index, row in successful_protocols.iterrows():
     q_1 = protocol[0:len(S_1)].copy()
     q_3 = protocol[len(S_1):].copy()
     
+    T_state_dict = {}
+    communication_count_a = 0
+    communication_count_c = 0
+    
+    communication_count_x_in_5 = 0
+    communication_count_y_in_4 = 0
     
     env = gym.make('ThreeAgentsLSEnv-v0', render_mode=None, string_mode="simulation")
+    
     
     return_values = [0,0,0]
     
@@ -53,21 +65,21 @@ for index, row in successful_protocols.iterrows():
         a1_return = 0
         a2_return = 0
         a3_return = 0
-
-        communication_count = [0,0,0]
         
         while not(terminated):
             
             if curr_event in A1_OBS:
                 agent_id = 1        
                 
-                
                 a1_row_num = S_1[(agent_1_belief,curr_event, agent_2_in_dead_state, agent_3_in_dead_state)]
                 
                 a1_action = q_1[a1_row_num]
                 a1_action = ACTIONS[a1_action]
-                                
-                communication_count[0] +=np.sum(a1_action)
+                
+                if curr_event == 'a':            
+                    communication_count_a +=np.sum(a1_action)
+                if curr_event  == 'x' and agent_2_belief == 5:
+                    communication_count_x_in_5 += np.sum(a1_action)
                 
                 v_state, reward, terminated, simulation_result, info = env.step((agent_id, a1_action))
                 
@@ -83,8 +95,11 @@ for index, row in successful_protocols.iterrows():
                 a3_action = q_3[a3_row_num]
                 a3_action = ACTIONS[a3_action]
                 
-                communication_count[2] += np.sum(a3_action)
-                
+                if curr_event == 'c':
+                    communication_count_c += np.sum(a3_action)
+                if curr_event == 'y' and agent_2_belief == 4:
+                    communication_count_y_in_4 += np.sum(a3_action)
+
                 v_state, reward, terminated, simulation_result, info = env.step((agent_id, a3_action))
                 
                 comm_cost, penalty = reward
@@ -101,14 +116,11 @@ for index, row in successful_protocols.iterrows():
             
             curr_event=info['curr_event']
         
-        communication_counts.get(input_word).append(communication_count)
         
-        if not simulation_result:
-            print("\nError: Simulation failed unexpectedly.")
-            break
-        # print(a1_action, a2_action, a3_action)
-        # print(a1_return, a2_return, a3_return)
-        # print(communication_count)
+        # if not simulation_result:
+        #     print("\nError: Simulation failed unexpectedly.")
+        #     break
+
         
         a1_return += penalty
         a2_return += penalty
@@ -118,13 +130,22 @@ for index, row in successful_protocols.iterrows():
         return_values[1] += a2_return
         return_values[2] += a3_return
         
+        # if v_state not in T_state_dict:
+        #     T_state_dict[v_state] = 1
+        # else:
+        #     T_state_dict[v_state] += 1
+    
+    communication_counts_a.append(communication_count_a)
+    communication_counts_c.append(communication_count_c)
+    communication_counts_x_in_5.append(communication_count_x_in_5)
+    communication_counts_y_in_4.append(communication_count_y_in_4)
+    
+    T_state_dict_list.append(T_state_dict)
         
     return_values = [return_values[i]/4 for i in range(3)]
     return_values[0] = round(return_values[0], 2)
     return_values[1] = round(return_values[1], 2)
     return_values[2] = round(return_values[2], 2)
-    
-    
     
     return_value_list.append(return_values)
     
@@ -134,22 +155,22 @@ for index, row in successful_protocols.iterrows():
         returns_dict[tuple(return_values)] += row["Counts"]
         
 return_value_df = pd.DataFrame(return_value_list, columns=["Agent 1 Return", "Agent 2 Return", "Agent 3 Return"])
-        
+
+communication_counts_a_df = pd.DataFrame(communication_counts_a, columns=["# comm for 'a'"])
+communication_counts_c_df = pd.DataFrame(communication_counts_c, columns=["# comm for 'c'"])
+communication_counts_x_in_5_df = pd.DataFrame(communication_counts_x_in_5, columns=["# comm for 'x' when system state in 5"])
+communication_counts_y_in_4_df = pd.DataFrame(communication_counts_y_in_4, columns=["# comm for 'y' when system state in 4"])
+
+T_state_dict_df = pd.DataFrame(T_state_dict_list, columns = T_state_dict_list[0].keys())
+
+# print(T_state_dict_df)
+
 successful_protocols["Agent 1 Return"] = return_value_df["Agent 1 Return"]
 successful_protocols["Agent 2 Return"] = return_value_df["Agent 2 Return"]
 successful_protocols["Agent 3 Return"] = return_value_df["Agent 3 Return"]
 
-successful_protocols.to_csv("three_agents_benchmark/successful_protocols_with_returns.csv", index=False)
+successful_protocols.to_csv(f"{FOLDER_NAME}/{file_name}_with_returns.csv", index=False)
 
-for key in communication_counts:
-    counts = communication_counts[key]
-    avg_counts = [0,0,0]
-    for count in counts:
-        avg_counts[0] += count[0]
-        avg_counts[1] += count[1]
-        avg_counts[2] += count[2]
-    avg_counts = [round(avg_counts[i]/len(counts),3) for i in range(3)]
-    print(f"Average communication counts for input word '{key}': Agent 1: {avg_counts[0]}, Agent 2: {avg_counts[1]}, Agent 3: {avg_counts[2]}")
 
 
 returns_df = pd.DataFrame(list(returns_dict.items()), columns=["Returns (A1, A2, A3)", "Count"])

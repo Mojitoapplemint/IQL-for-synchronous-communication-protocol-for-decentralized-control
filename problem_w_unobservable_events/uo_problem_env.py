@@ -14,6 +14,7 @@ class UOEnv(gym.Env):
     COMMUNICATE_COST = 10
     # PENALTY_11 = 500 # For Exp 1
     PENALTY_11 = 100 # For Exp 2
+    # PENALTY_11 = 0 # For Exp 3
     PENALTY_9 = 500
     
     # symbol replacement

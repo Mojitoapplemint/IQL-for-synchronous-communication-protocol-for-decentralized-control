@@ -31,13 +31,13 @@ fail_rate_count={}
 success_dict = {}
 fail_dict = {}
 over_comm_rate_count={}
-session_count = 100
+session_count = 1000
 
 for i in range(session_count):
     print(str(100*i/session_count)+"%","done" , end="\r")
     
     fail_count = 0
-    test_count = 100
+    test_count = 500
     over_comm_count=0
 
     string_mode = "training"
@@ -61,15 +61,15 @@ for i in range(session_count):
 
         global_state, agent_1_belief, agent_2_belief = config
 
-        curr_symbol=info['input_alphabet']
+        curr_event=info['curr_event']
         
-        string = info['string']
+        word = info['word']
 
         agent_1_in_dead_state = False
         agent_2_in_dead_state = False
 
         while not(terminated):
-            if curr_symbol == "a":
+            if curr_event == "a":
                 
                 agent_id=1
                 agent_1_row_num = PHI[(agent_2_in_dead_state, agent_1_belief)]
@@ -85,9 +85,9 @@ for i in range(session_count):
                 
                 agent_2_in_dead_state = agent_2_belief == -1
                 
-                curr_symbol=info['input_alphabet']
+                curr_event=info['curr_event']
                             
-            if curr_symbol == "b":
+            if curr_event == "b":
                 agent_id=2
                 agent_2_row_num = PHI[(agent_1_in_dead_state, agent_2_belief)]
                 
@@ -101,7 +101,7 @@ for i in range(session_count):
                 
                 agent_1_in_dead_state = agent_1_belief == -1
                 
-                curr_symbol=info['input_alphabet']
+                curr_event=info['curr_event']
         
         if not simulation_result:
             fail_count += 1
@@ -147,9 +147,9 @@ over_comm_rate_count_df = over_comm_rate_count_df.sort_values(by=['Over Communic
 
 
 success_dict_df = pd.DataFrame(list(success_dict.items()), columns=['Communication Protocols', 'Success Count'])
-# success_dict_df.to_csv("./cyclic_problem_w_unobservable_events/successful_protocols.csv", index=False)
+success_dict_df.to_csv("./cyclic_problem_w_unobservable_events/successful_protocols_exp_1.csv", index=False)
 
-fail_dict_df = pd.DataFrame(list(fail_dict.items()), columns=['Communication Protocols', 'Fail Count'])
+# fail_dict_df = pd.DataFrame(list(fail_dict.items()), columns=['Communication Protocols', 'Fail Count'])
 # fail_dict_df.to_csv("./cyclic_problem_w_unobservable_events/failed_protocols.csv", index=False)
 
 print("Fail Rate Count over", session_count, "sessions:")

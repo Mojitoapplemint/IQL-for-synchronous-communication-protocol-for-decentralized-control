@@ -17,15 +17,19 @@ class WordGenerator:
                 word += 'ba'
         return word + 's'
     
+    
     def generate_simulation_word(self):
+        '''
+        Generates a random simulation word from regular expression (abd|bad)*absd(abd|bad)* (abs|bas)
+        '''
         word = ''
         
-        for _ in range( random.randint(0, self.max_star)):
+        for _ in range( random.randint(1, self.max_star)):
             
             for _ in range(random.randint(0, self.max_star)):
-                word+=random.choice(['abc','bac'])
+                word+=random.choice(['abd','bad'])
             
-            word += 'absc'
+            word += 'absd'
         
         word += random.choice(['abs','bas'])
 
@@ -33,19 +37,19 @@ class WordGenerator:
         return word
         
 
-generator = WordGenerator(max_star=6)
+# generator = WordGenerator(max_star=6)
 
-testing_pool = []
+# testing_pool = []
 
-count = 0
+# count = 0
 
-while count<500:
-    word = generator.generate_simulation_word()
-    if word not in testing_pool:
-        testing_pool.append(word)
-        count+=1
+# while count<500:
+#     word = generator.generate_simulation_word()
+#     if word not in testing_pool:
+#         testing_pool.append(word)
+#         count+=1
 
-testing_pool_df = pd.DataFrame(testing_pool, columns=['word'])
+# testing_pool_df = pd.DataFrame(testing_pool, columns=['word'])
 
-testing_pool_df.to_csv('cyclic_problem_w_unobservable_events/simulation_words.csv', index=False)        
+# testing_pool_df.to_csv('cyclic_problem_w_unobservable_events/simulation_words.csv', index=False)        
         

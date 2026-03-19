@@ -47,7 +47,7 @@ def q_training(env, epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1, print_proce
         
         config, info = env.reset()
         
-        curr_symbol=info['input_alphabet']
+        curr_event=info['curr_event']
         
         _, agent_1_belief, agent_2_belief = config
         
@@ -67,7 +67,7 @@ def q_training(env, epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1, print_proce
         agent_2_in_dead_state = False
         
         while not (terminated or truncated):
-            if curr_symbol == "a":
+            if curr_event == "a":
                 
                 agent_id=1
                 agent_1_row_num = PHI[(agent_2_in_dead_state, agent_1_belief)]
@@ -87,11 +87,11 @@ def q_training(env, epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1, print_proce
                 
                 reward_1 += comm_cost
                 
-                curr_symbol=info['input_alphabet']
+                curr_event=info['curr_event']
                 
                 agent_1_prev_row_num = agent_1_row_num
                             
-            if curr_symbol == "b":
+            if curr_event == "b":
                 agent_id=2
                 agent_2_row_num = PHI[(agent_1_in_dead_state, agent_2_belief)]
                 
@@ -111,7 +111,7 @@ def q_training(env, epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1, print_proce
                 
                 reward_2 += comm_cost
                 
-                curr_symbol=info['input_alphabet']
+                curr_event=info['curr_event']
                 
                 agent_2_prev_row_num = agent_2_row_num
         
@@ -127,14 +127,6 @@ def q_training(env, epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1, print_proce
         
     return q_1, q_2
 
-q_training_env = gym.make('CyclicEnv-v0', render_mode=None, string_mode="training")
 
-q_1, q_2 = q_training(q_training_env, epochs=10000, alpha=0.01, gamma=0.1, epsilon=0.1, print_process=True)
-
-q_1_df = pd.DataFrame(q_1, columns=["do not communcate", "communicate"])
-q_2_df = pd.DataFrame(q_2, columns=["do not communcate", "communicate"])
-
-q_1_df.to_csv(f'cyclic_problem_w_unobservable_events/demo_q1_table.csv')
-q_2_df.to_csv(f'cyclic_problem_w_unobservable_events/demo_q2_table.csv')
 
 # Training done, go to simulation.py for simulation
