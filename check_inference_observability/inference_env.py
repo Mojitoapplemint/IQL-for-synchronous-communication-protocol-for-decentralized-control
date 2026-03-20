@@ -11,15 +11,15 @@ gym.register(
 )
 
 class InferenceEnv(gym.Env):
-    COMMUNICATION_COST = 10
-    D_PENALTY = 400
-    E_PENALTY = 400
+    COMMUNICATION_COST = 0.1
+    D_PENALTY = 100000
+    E_PENALTY = 100000
     
-    D_PEN_STATES = {8,12,22}
+    D_PEN_STATES = {17,18,21}
     
-    E_PEN_STATES = {5,15,19}
+    E_PEN_STATES = {16,19,20}
     
-    STATES_DISABLE_SIGMA = {7,11,21}
+    STATES_DISABLE_SIGMA = {3,8,13}
     
     m_L_states={
         0: 'q0',
@@ -272,7 +272,7 @@ class InferenceEnv(gym.Env):
             print(f"Resulting V structure state: <{self.m_L_states[self.system_state]}, {self.m_L_states[self.agent_1_state]}, {self.m_L_states[self.agent_2_state]}>")
 
     
-    def simulate(self, agent_2_disable=False):
+    def simulate(self, agent_1_disable=False, agent_2_disable=False):
         a = [" " for _ in range(22)]
         a[self.system_state] = "#"
         
@@ -283,27 +283,31 @@ class InferenceEnv(gym.Env):
             if agent_2_disable:
                 print("Agent 2 disabled 's'")
                 block = "X"
+            
+            if agent_1_disable:
+                print("Agent 1 disabled 's'")
+                block = "X"
                  
-            if self.system_state in self.E_PEN_STATES and not (agent_2_disable):
+            if self.system_state in self.E_PEN_STATES and not (agent_2_disable or agent_1_disable):
                 print("\nSuccessfully enabled s")
             
-            if self.system_state in self.D_PEN_STATES and (agent_2_disable):
+            if self.system_state in self.D_PEN_STATES and (agent_2_disable or agent_1_disable):
                 print("\nFailed to enable s")
             
-            if self.system_state == self.STATES_DISABLE_SIGMA and (agent_2_disable):
+            if self.system_state == self.STATES_DISABLE_SIGMA and (agent_2_disable or agent_1_disable):
                 print("\nSuccessfully disabled s")
                 
-            if self.system_state == self.D_PEN_STATES and not (agent_2_disable):
+            if self.system_state == self.D_PEN_STATES and not (agent_2_disable or agent_1_disable):
                 print("\nFailed to disable s")
         
         print(
         "                                      s __                                    \n"
         "                                       |  v                                   \n"
-        "                   s __          p    +-15-+   m    +-04-+   s    +-16-+       \n"
+        "                   s __          p    +q1a-+   m    +q04-+   s    +-k3-+       \n"
         f"                    |  v      /-----> |  {a[15]} | -----> |  {a[4]} | {block}-{block}-{block}> |  {a[16]} |       \n"
-        "                   +-01-+    /        +----+     -> +----+        +----+       \n"
+        "                   +q01-+    /        +----+     -> +----+        +----+       \n"
         f"             /---> |  {a[1]} | --+                 m /                              \n"
-        "         a  /      +----+    \\        +-02-+ ---    +-03-+        +-17-+       \n"
+        "         a  /      +----+    \\        +q02-+ ---    +q03-+        +-x0-+       \n"
         f"           /                  \\-----> |  {a[2]} | -----> |  {a[3]} | {block} {block} {block}> |  {a[17]} |       \n"
         "          /                      m    +----+   p    +----+   s    +----+       \n"
         "         |                             \\  ^                                    \n"
@@ -311,11 +315,11 @@ class InferenceEnv(gym.Env):
         "         |                                                                    \n"
         "         |                            s __                                    \n"
         "         |                             |  v                                   \n"
-        "   s __  |         s __          q    +-06-+        +-08-+   s    +-18-+       \n"
+        "   s __  |         s __          q    +q06-+        +q08-+   s    +-x1-+       \n"
         f"    |  v |          |  v      /-----> |  {a[6]} | -----> |  {a[8]} | {block} {block} {block}> |  {a[18]} |       \n"
-        "     +-00-+   b    +-05-+    /        +----+        +----+        +----+       \n"
+        "     +q00-+   b    +q05-+    /        +----+        +----+        +----+       \n"
         f"     |  {a[0]} | -----> |  {a[5]} | --+                                                  \n"
-        "     +----+        +----+    \\        +-07-+        +-09-+        +-19-+       \n"
+        "     +----+        +----+    \\        +q07-+        +q09-+        +-k1-+       \n"
         f"         |                    \\-----> |  {a[7]} | -----> |  {a[9]} | {block}-{block}-{block}> |  {a[19]} |       \n"
         "         |                       r    +----+        +----+   s    +----+       \n"
         "         |                             \\  ^                                     \n"
@@ -323,11 +327,11 @@ class InferenceEnv(gym.Env):
         "         |                                                                     \n"
         "         |                            s __                                     \n"
         "         |                             |  v                                    \n"
-        "          \\        s __          q    +-12-+   m    +-14-+   s    +-20-+       \n"
+        "          \\        s __          q    +q12-+   m    +q14-+   s    +-k2-+       \n"
         f"           \\        |  v      /-----> |  {a[12]} | -----> |  {a[14]} | {block}-{block}-{block}> |  {a[20]} |       \n"
-        "         c  \\      +-10-+    /        +----+        +----+        +----+       \n"
+        "         c  \\      +q10-+    /        +----+        +----+        +----+       \n"
         f"             \\---> |  {a[10]} | --+                                                  \n"
-        "                   +----+    \\        +-11-+        +-13-+        +-21-+       \n"
+        "                   +----+    \\        +q11-+        +q13-+        +-x2-+       \n"
         f"                              \\-----> |  {a[11]} | -----> |  {a[13]} | {block} {block} {block}> |  {a[21]} |       \n"
         "                                 p    +----+   m    +----+   s    +----+       \n"
         "                                       \\  ^                                    \n"

@@ -39,7 +39,7 @@ class WordGenerator:
         
         return word
 
-# generator = WordGenerator(max_star=3)
+# generator = WordGenerator(max_star=5)
 
 # testing_pool = []
 
@@ -49,7 +49,7 @@ class WordGenerator:
 #     word = generator.generate_training_word()
 #     if word not in testing_pool:
 #         testing_pool.append(word)
-#     count+=1
+#         count+=1
 
 # testing_pool_df = pd.DataFrame(testing_pool, columns=['word'])
 

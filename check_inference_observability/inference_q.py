@@ -349,10 +349,10 @@ S_2 = {
 
 A1_OBS = ['a', 'b', 'c', 'm']
 
-A_2_OBS = ['p', 'q', 'r']
+A2_OBS = ['p', 'q', 'r']
 
-def get_action(q_table, is_opponent_lost, row_num, epsilon):
-    if is_opponent_lost:
+def get_action(q_table, is_opponent_dead, row_num, epsilon):
+    if is_opponent_dead:
         return 0
     if random.uniform(0, 1) < epsilon:
         return np.argmin(q_table[row_num]) # Explore: choose the action that is not best
@@ -411,7 +411,7 @@ def q_training(env, epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1, print_proce
                 
                 s_1 = next_s_1
                             
-            if curr_event in A_2_OBS:
+            if curr_event in A2_OBS:
                 agent_id=2
                 next_s_2 = S_2[(agent_2_belief, curr_event, agent_1_in_dead_state)]
                 
