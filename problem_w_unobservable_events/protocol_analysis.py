@@ -8,7 +8,7 @@ import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 from uo_problem_q import FOLDER_NAME
 
-file_name = "exp1_successful_protocols_a_0.01_g_0.1_e_0.1_with_stats"
+file_name = "exp3_a_0.01_g_0.1_e_0.1_with_stats"
 
 protocols_df = pd.read_csv(f'{FOLDER_NAME}/{file_name}.csv')
 
@@ -32,7 +32,7 @@ for column in unique_protocols.columns:
         unique_protocols = unique_protocols.drop(columns=[column])
 
 
-# print(unique_protocols)
+print(unique_protocols)
 
 count = []
 for row in unique_protocols.itertuples():

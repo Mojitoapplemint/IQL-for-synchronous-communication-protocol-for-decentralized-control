@@ -32,14 +32,15 @@ m_L_bot={
     -1: "{⊥}",
 }
 
-# exp_number = 3
+exp_number = 1
 
-# file_name = f"exp{exp_number}_successful_protocols_a_0.01_g_0.1_e_0.1"
+file_name = f"exp{exp_number}_a_0.01_g_0.1_e_0.1"
 
-file_name = "baselines"
+# file_name = "baselines"
 
 successful_protocols = pd.read_csv(f'{FOLDER_NAME}/{file_name}.csv')
 
+GAMMA = 0.1
 
 success_return_values_x = []
 success_return_values_y = []
@@ -58,8 +59,8 @@ for index, row in successful_protocols.iterrows():
     protocol = row["Protocol"].replace("(","").replace(")","").split(", ")
     protocol = [int(x) for x in protocol]
     
-    q_1 = protocol[:40] + [0 for _ in range(40)]
-    q_2 = protocol[40:] + [0 for _ in range(120)]
+    q_1 = protocol[:40]
+    q_2 = protocol[40:]
         
     return_value = [0,0]
     
@@ -118,8 +119,8 @@ for index, row in successful_protocols.iterrows():
                 agent_id=1
                 
                 if s_1 != -1 :
-                    # return_value[0] += (0.1**t_1)*reward_1
-                    return_value[0] += reward_1
+                    return_value[0] += (GAMMA**t_1)*reward_1
+                    # return_value[0] += reward_1
                     t_1+=1
                     reward_1 = 0
 
@@ -150,8 +151,8 @@ for index, row in successful_protocols.iterrows():
                 agent_id=2
                 
                 if s_2 != -1 :
-                    # return_value[1] += (0.1**t_2)*reward_2
-                    return_value[1] += reward_2
+                    return_value[1] += (GAMMA**t_2)*reward_2
+                    # return_value[1] += reward_2
                     t_2+=1
                     reward_2 = 0
                 
@@ -187,10 +188,10 @@ for index, row in successful_protocols.iterrows():
         reward_2 += penalty
         reward_1 += penalty
         
-        return_value[0] += reward_1
-        return_value[1] += reward_2
-        # return_value[0] += (0.1**t_1)*reward_1
-        # return_value[1] += (0.1**t_2)*reward_2
+        # return_value[0] += reward_1
+        # return_value[1] += reward_2
+        return_value[0] += (GAMMA**t_1)*reward_1
+        return_value[1] += (GAMMA**t_2)*reward_2
         
     T_state_dict_list.append(T_state_dict)
 
@@ -217,17 +218,12 @@ joint_return_values_df = pd.DataFrame(joint_return_values, columns=['Agent 1 Ret
 
 communication_counts = pd.DataFrame(communication_counts, columns=['Agent 1 Communicate', 'Agent 1 Not Communicate', 'Agent 2 Communicate', 'Agent 2 Not Communicate'])
 
-
-for column in communication_counts.columns:
-    print(f"{column}: {communication_counts[column].mean():.2f} ± {communication_counts[column].std():.2f}")
-
 print(communication_counts)
 
 # print(T_state_dict)
 
 T_state_df = pd.DataFrame(T_state_dict_list, columns=T_state_dict.keys())
 
-# communication_counts.to_csv("problem_w_unobservable_events/larger_11_penalty_communication_counts.csv", index=False)
 
 a1_protocol_df = pd.DataFrame(a1_protocol_list)
 a2_protocol_df = pd.DataFrame(a2_protocol_list)
@@ -257,24 +253,49 @@ for return_value in joint_return_values_df["Agent 2 Return"].unique():
 
 return_data_df = pd.DataFrame(return_data, columns=['Agent 2 Return', 'Count'])
 
+return_weighted_mean = np.sum(return_data_df['Agent 2 Return'] * return_data_df['Count']) / np.sum(return_data_df['Count'])
+
+print("Weighted Mean of Agent 2 Return:", return_weighted_mean)
+
+com_data = []
+
+for avg_com in communication_counts["Agent 2 Communicate"].unique():
+    
+    mask_df = protocols_df[protocols_df['Agent 2 Communicate'] == avg_com]
+    
+    count = mask_df['Success Count'].sum()
+    
+    com_data.append((avg_com, count))
+
+com_data_df = pd.DataFrame(com_data, columns=['Agent 2 Communicate', 'Count'])
+
+communication_weighted_mean = np.sum(com_data_df['Agent 2 Communicate'] * com_data_df['Count']) / np.sum(com_data_df['Count'])
+    
+print("Weighted Mean of Agent 2 Communication:", communication_weighted_mean)
+
+
+for T_state in T_state_dict.keys():
+    visit_data = []
+    for num_visit in T_state_df[T_state].unique():
+        mask_df = protocols_df[protocols_df[T_state] == num_visit]
+        count = mask_df['Success Count'].sum()
+        visit_data.append((num_visit, count))
+    visit_data_df = pd.DataFrame(visit_data, columns=[f'Visit Count of {T_state}', 'Count'])
+    weighted_mean_visit = np.sum(visit_data_df[f'Visit Count of {T_state}'] * visit_data_df['Count']) / np.sum(visit_data_df['Count'])
+    print(f"Weighted Mean of Visit Count for {T_state}: {weighted_mean_visit}")
 
 # print(return_data_df)
 
-weighted_mean = np.sum(return_data_df['Agent 2 Return'] * return_data_df['Count']) / np.sum(return_data_df['Count'])
-
-print("Weighted Mean of Agent 2 Return:", weighted_mean)
 
 protocols_df.to_csv(f"{FOLDER_NAME}/{file_name}_with_stats.csv", index=False)
 
-# plt.figure(figsize=(10,6))
-# ax = sns.barplot(x=return_data_df['Agent 2 Return'], y=return_data_df['Count'], alpha=0.7, color='blue', edgecolor='black')
-# plt.xlabel('Agent 2 Average Return')
-# plt.title(f'Exp {exp_number} Return Values for Agent 2 / Weighted Mean {weighted_mean:.3f}')
-# plt.legend()
-# for c in ax.containers:
-#     ax.bar_label(c) # fmt='%d' ensures the labels are displayed as integers
+plt.figure(figsize=(10,6))
+ax = sns.barplot(x=return_data_df['Agent 2 Return'], y=return_data_df['Count'], alpha=0.7, color='blue', edgecolor='black')
+plt.xlabel('Agent 2 Average Return')
+# plt.title(f'Exp {exp_number} Return Values for Agent 2 / Weighted Mean {return_weighted_mean:.3f}')
+plt.legend()
+for c in ax.containers:
+    ax.bar_label(c) # fmt='%d' ensures the labels are displayed as integers
 
-# plt.savefig(f'problem_w_unobservable_events/Exp {exp_number} Return.png')
-# plt.show()
-
-# print(np.mean(return_data_df["Agent 2 Return"]))
+plt.savefig(f'problem_w_unobservable_events/Exp {exp_number} Return.png')
+plt.show()

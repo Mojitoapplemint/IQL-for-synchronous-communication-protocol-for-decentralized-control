@@ -11,11 +11,17 @@ gym.register(
 )
 
 class UOEnv(gym.Env):
-    COMMUNICATE_COST = 10
+    COMMUNICATE_COST = 1
     PENALTY_11 = 500 # For Exp 1
-    # PENALTY_11 = 100 # For Exp 2
+    # PENALTY_11 = 250 # For Exp 2
     # PENALTY_11 = 0 # For Exp 3
     PENALTY_9 = 500
+    
+    D_PEN_STATES = {9}
+    
+    E_PEN_STATES = {11}
+    
+    STATES_DISABLE_SIGMA = {7}
     
     # symbol replacement
     #    a1 -> a,   c1 -> c
@@ -202,12 +208,12 @@ class UOEnv(gym.Env):
         #     reward -= 15
 
 
-        if self.system_state == 11 and  self.agent_1_belief ==-1 and self.agent_2_belief ==-1:
+        if self.system_state in self.E_PEN_STATES and  self.agent_1_belief ==-1 and self.agent_2_belief ==-1:
             
             penalty -=self.PENALTY_11
             terminated = True
 
-        if self.system_state == 9 and  self.agent_1_belief ==-1 and self.agent_2_belief ==-1:
+        if self.system_state in self.D_PEN_STATES and  self.agent_1_belief ==-1 and self.agent_2_belief ==-1:
             
             penalty -=self.PENALTY_9
             terminated = True
@@ -233,6 +239,7 @@ class UOEnv(gym.Env):
         terminated = False
         comm_cost = 0
         penalty = 0
+        simulation_result = False
         
         curr_symbol=self.word[self.event_index]
         
@@ -254,6 +261,13 @@ class UOEnv(gym.Env):
             
             if self.render_mode == 'human':
                 self.simulate(True, agent_1_disable_c, agent_2_disable_c)
+                
+            if (self.system_state in self.E_PEN_STATES) and not (agent_1_disable_c or agent_2_disable_c):
+                simulation_result = True
+
+            if (self.system_state in self.STATES_DISABLE_SIGMA) and (agent_1_disable_c or agent_2_disable_c):
+                simulation_result = True
+                
         else:
             self.system_state = self.m_L_transitions[self.system_state].get(curr_symbol)
             if agent_id==1:
@@ -276,6 +290,9 @@ class UOEnv(gym.Env):
 
             if self.render_mode == 'human':
                 self.simulate()
+    
+        
+        
         
         self.event_index += 1
         
@@ -290,15 +307,16 @@ class UOEnv(gym.Env):
             curr_symbol=self.word[self.event_index]
         
         
-        if self.system_state == 11 and  self.agent_1_belief ==-1 and self.agent_2_belief ==-1:
+        if self.system_state in self.E_PEN_STATES and  self.agent_1_belief ==-1 and self.agent_2_belief ==-1:
             
             penalty -=self.PENALTY_11
             terminated = True
 
-        if self.system_state == 9 and  self.agent_1_belief ==-1 and self.agent_2_belief ==-1:
+        if self.system_state in self.D_PEN_STATES and  self.agent_1_belief ==-1 and self.agent_2_belief ==-1:
             
             penalty -=self.PENALTY_9
             terminated = True
+            
         elif self.word[self.event_index]=="$":
             terminated = True
         
@@ -308,7 +326,7 @@ class UOEnv(gym.Env):
         config = (self.system_state, self.agent_1_belief, self.agent_2_belief)
         info = {"curr_event":self.word[self.event_index], "word":self.word}
         
-        return np.array(config, dtype=np.int32), (comm_cost, penalty), terminated, False, info
+        return np.array(config, dtype=np.int32), (comm_cost, penalty), terminated, simulation_result, info
     
     def simulate(self, seven_or_ten=False, agent_1_disable_c=None, agent_2_disable_c=None):
         # Note: In simulation mode, we still use variable "agent_0_state", but this refers to the actual global state.

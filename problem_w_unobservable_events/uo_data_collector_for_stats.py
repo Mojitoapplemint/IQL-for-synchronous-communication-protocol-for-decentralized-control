@@ -29,16 +29,16 @@ m_bottom={
     -1: {-1},
 }
 
-epochs=20000
+epochs=10000
 alpha=0.01
-gamma=0.1
+gamma=0.9
 epsilon=0.1
 
 fail_rate_count={}
 over_comm_rate_count={}
 success_dict = {}
 result_dict = {}
-session_count = 1000
+session_count = 100
 
 for i in range(session_count):
     print(str(100*i/session_count)+"%","done" , end="\r")
@@ -57,7 +57,7 @@ for i in range(session_count):
 
         config, info = env.reset()
         
-        string = info['string']
+        word = info['word']
         
         # print(string)
 
@@ -107,7 +107,7 @@ for i in range(session_count):
                 curr_event=info['curr_event']
         
         # print(global_state, agent_1_belief, agent_2_belief)
-        if global_state ==9 and agent_1_belief ==-1 and agent_2_belief ==-1:
+        if not simulation_result:
             fail_count += 1
         if global_state == agent_1_belief and global_state == agent_2_belief:
             over_comm_count += 1
@@ -160,4 +160,4 @@ over_comm_rate_df = pd.DataFrame(list(over_comm_rate_count.items()), columns=['O
 print(over_comm_rate_df)
 
 success_protocols_df = pd.DataFrame(list(success_dict.items()), columns=['Protocol', 'Success Count'])
-success_protocols_df.to_csv(f"./problem_w_unobservable_events/exp1_successful_protocols_a_{alpha}_g_{gamma}_e_{epsilon}.csv", index=False)
+success_protocols_df.to_csv(f"./problem_w_unobservable_events/exp1-2_a_{alpha}_g_{gamma}_e_{epsilon}.csv", index=False)
