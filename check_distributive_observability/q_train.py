@@ -1,7 +1,7 @@
 import gymnasium as gym
 import pandas as pd
-import inference_env
-from inference_q import q_training, FOLDER_NAME
+import check_distributive_observability.distributive_env as distributive_env
+from check_distributive_observability.distributive_q import q_training, FOLDER_NAME
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
