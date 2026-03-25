@@ -299,11 +299,6 @@ def q_training(env, epochs=10000, alpha = 0.1, gamma=0.1, min_epsilon=0.1, print
     # q_2 = np.zeros((len(S_2), env.action_space.n))
     q_3 = np.zeros((len(S_3), env.action_space.n))
     
-    
-    
-    a1_action_count = [0,0,0,0]
-    a3_action_count = [0,0,0,0]
-    
     for episode in range(epochs):
         if (print_process and episode%100==0):
             print(str(100*episode/epochs)+"%","done" , end="\r")
@@ -341,8 +336,6 @@ def q_training(env, epochs=10000, alpha = 0.1, gamma=0.1, min_epsilon=0.1, print
                     reward_1 = 0
                                 
                 a1_action = get_action(q_1, agent_j_in_dead_state=agent_2_in_dead_state, agent_k_in_dead_state=agent_3_in_dead_state, row_num=next_s_1, epsilon=epsilon)
-
-                a1_action_count[a1_action] += 1
                 
                 config, reward, terminated, _, info = env.step((agent_id, ACTIONS[a1_action]))
                 
@@ -365,7 +358,6 @@ def q_training(env, epochs=10000, alpha = 0.1, gamma=0.1, min_epsilon=0.1, print
                     reward_3 = 0
                 
                 a3_action = get_action(q_3, agent_j_in_dead_state=agent_1_in_dead_state, agent_k_in_dead_state=agent_2_in_dead_state, row_num=next_s_3, epsilon=epsilon)
-                a3_action_count[a3_action] += 1
                 
                 config, reward, terminated, _, info = env.step((agent_id, ACTIONS[a3_action]))
                 

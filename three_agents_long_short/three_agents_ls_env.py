@@ -231,7 +231,7 @@ class ThreeAgentsLSEnv(gym.Env):
         v_state = (self.system_state, self.agent_1_state, self.agent_2_state, self.agent_3_state)
         info = {'curr_event': self.curr_event}
         
-        if self.string_mode == 'simulation' or self.string_mode == 'stats':
+        if self.string_mode == 'simulation':
             truncated = simulation_result
         else:
             truncated = False
