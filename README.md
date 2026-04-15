@@ -13,8 +13,8 @@ The optimality of synchronous communication protocols in decentralized discrete-
 1.  **Clone the repository:**
 
     ```bash
-    git clone [https://github.com/Mojitoapplemint/IQL-for-Decentralized-Communication-and-Control.git](https://github.com/Mojitoapplemint/IQL-for-Decentralized-Communication-and-Control.git)
-    cd IQL-for-Decentralized-Communication-and-Control
+    git clone https://github.com/Mojitoapplemint/IQL-for-synchronous-communication-protocol-for-decentralized-control.git
+    cd IQL-for-synchronous-communication-protocol-for-decentralized-control
     ```
 
 2.  **Create a virtual environment:**
