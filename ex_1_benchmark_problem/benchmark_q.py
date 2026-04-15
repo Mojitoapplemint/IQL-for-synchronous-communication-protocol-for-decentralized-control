@@ -1,5 +1,3 @@
-import sys
-sys.path.insert(0, './benchmark_problem')
 import gymnasium as gym
 import numpy as np
 import pandas as pd
@@ -88,5 +86,5 @@ def q_main(env, epochs=10000, epsilon=0.1, gamma=0.1, alpha=0.1, print_process=F
 
 # q_1_df = pd.DataFrame(q_1, columns=['Do Not Communicate', 'Communicate'], index=[i for i in range(7)])
 # q_2_df = pd.DataFrame(q_2, columns=['Do Not Communicate', 'Communicate'], index=[i for i in range(7)])
-# q_1_df.to_csv(f"./benchmark_problem/demo_q_1.csv")
-# q_2_df.to_csv(f"./benchmark_problem/demo_q_2.csv")
+# q_1_df.to_csv(f"./ex_1_benchmark_problem/demo_q_1.csv")
+# q_2_df.to_csv(f"./ex_1_benchmark_problem/demo_q_2.csv")

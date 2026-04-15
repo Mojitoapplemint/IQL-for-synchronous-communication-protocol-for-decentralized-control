@@ -6,7 +6,7 @@ import three_agents_env
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
-FOLDER_NAME = 'three_agents_benchmark'
+FOLDER_NAME = 'ex_5_three_agents_benchmark'
 
 
 ACTIONS = {

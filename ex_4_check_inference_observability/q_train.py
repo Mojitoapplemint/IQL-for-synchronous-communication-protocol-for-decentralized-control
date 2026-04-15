@@ -1,11 +1,11 @@
 import gymnasium as gym
 import pandas as pd
-import check_distributive_observability.distributive_env as distributive_env
-from check_distributive_observability.distributive_q import q_training, FOLDER_NAME
+import inference_env
+from inference_q import q_training, FOLDER_NAME
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
-q_training_env = gym.make('InferenceEnv-v0', render_mode=None, string_mode="training")
+q_training_env = gym.make('InferenceEnv-v1', render_mode=None, string_mode="training")
 
 q_1, q_2 = q_training(q_training_env, epochs=1000000, alpha=0.01, gamma=0.2, epsilon=0.1, print_process=True)
 

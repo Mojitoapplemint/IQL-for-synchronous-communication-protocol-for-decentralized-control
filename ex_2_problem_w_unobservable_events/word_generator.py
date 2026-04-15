@@ -99,4 +99,4 @@ class WordGenerator:
 
 # testing_pool_df = pd.DataFrame(testing_pool, columns=['word'])
 
-# testing_pool_df.to_csv('problem_w_unobservable_events/simulation_words.csv', index=False)
+# testing_pool_df.to_csv('ex_2_problem_w_unobservable_events/simulation_words.csv', index=False)

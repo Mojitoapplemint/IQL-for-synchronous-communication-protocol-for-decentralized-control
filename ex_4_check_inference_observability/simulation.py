@@ -8,7 +8,7 @@ from inference_q import S_1, S_2, A1_OBS, A2_OBS, get_action, q_training, FOLDER
 
 
     
-env = gym.make('InferenceEnv-v0', render_mode=None, string_mode="simulation")
+env = gym.make('InferenceEnv-v1', render_mode=None, string_mode="simulation")
 
 q_1 = pd.read_csv(f'{FOLDER_NAME}/q_1.csv').to_numpy()
 q_2 = pd.read_csv(f'{FOLDER_NAME}/q_2.csv').to_numpy()
