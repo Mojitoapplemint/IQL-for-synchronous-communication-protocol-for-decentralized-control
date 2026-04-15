@@ -7,6 +7,8 @@
 ## 📌 Abstracts
 The optimality of synchronous communication protocols in decentralized discrete-event control has traditionally been analyzed through syntactic measures, such as the number of communication events or logical minimality. However, these metrics provide no insight into how these protocols perform during actual system operation. As such, analyzing communication empirically provides more practical metrics, such as communication frequency, decision quality, and operational efficiency. We use Multi-Agent Reinforcement Learning to analyze empirically such communication protocols in decentralized decision-making architectures.
 
+## 🎓 Citation
+This work is currently accepted by the Workshop on Discrete Event Systems(WODES) 2026. The formal citation will be updated soon.
 
 ## 🛠️ Installation & Setup
 
