@@ -1,5 +1,7 @@
-benchmark_problem/*.csv
-benchmark_problem/*.png
-problem_w_unobservable_events/*.csv
 */*.png
-experiment
+*/*.csv
+remove_assmp_1
+with_assmp_1
+*/test.py
+*/_pycache_/
+three_agents_long_short

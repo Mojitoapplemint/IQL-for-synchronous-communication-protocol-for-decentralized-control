@@ -2,9 +2,11 @@ import numpy as np
 import gymnasium as gym
 import pandas as pd
 import random
-import sys
-sys.path.insert(0, './problem_w_unobservable_events')
 import  uo_problem_env
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
+
+FOLDER_NAME = "problem_w_unobservable_events"
 
 S_1={
     (1, 'a'):0,
@@ -172,9 +174,11 @@ S_2={
     (-1,'r'):119,
 }
 
-def get_action(q_table, opponent_in_dead_state, row_num, epsilon):
-    if opponent_in_dead_state:
-        return 0
+A1_OBS = ['a', 'c']
+
+A2_OBS = ['x', 'y', 'z', 's', 't', 'r']
+
+def get_action(q_table, row_num, epsilon):
     if random.uniform(0, 1) < epsilon:
         return random.randint(0, 1)  # Explore: random action
     else:
@@ -192,7 +196,7 @@ def q_training(env, epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1, print_proce
             
         config, info = env.reset()
         
-        curr_symbol=info['input_alphabet']
+        curr_event=info['curr_event']
         
         _, agent_1_belief, agent_2_belief = config
         
@@ -208,14 +212,11 @@ def q_training(env, epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1, print_proce
         reward_1 = 0
         reward_2 = 0
         
-        agent_1_in_dead_state = False
-        agent_2_in_dead_state = False
-        
         while not (terminated or truncated):
-            if curr_symbol in ['a', 'c']:
+            if curr_event in A1_OBS:
                 
                 agent_id=1
-                s_1 = len(S_1)+S_1[(agent_1_belief, curr_symbol)] if agent_2_in_dead_state else S_1[(agent_1_belief, curr_symbol)]
+                s_1 = S_1[(agent_1_belief, curr_event)]
 
                 
                 if prev_s_1 != -1 :
@@ -223,22 +224,23 @@ def q_training(env, epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1, print_proce
                     q_1[prev_s_1][agent_1_communicate] += alpha * (reward_1 + gamma * np.max(q_1[s_1]) - q_1[prev_s_1][agent_1_communicate])
                     reward_1 = 0
                 
-                agent_1_communicate = get_action(q_1, agent_2_in_dead_state, s_1, epsilon)
+                agent_1_communicate = get_action(q_1, s_1, epsilon)
                 config, reward, terminated, truncated, info = env.step((agent_id, agent_1_communicate))
                 
                 _, agent_1_belief, agent_2_belief = config
                 
-                agent_2_in_dead_state = agent_2_belief == -1
-                    
-                reward_1 += reward
                 
-                curr_symbol=info['input_alphabet']
+                comm_cost, penalty = reward
+                    
+                reward_1 += comm_cost
+                
+                curr_event=info['curr_event']
                 
                 prev_s_1 = s_1
                             
-            if curr_symbol in ['x', 'y', 'z', 's', 't', 'r']:
+            if curr_event in A2_OBS:
                 agent_id=2
-                s_2 = len(S_2)+S_2[(agent_2_belief, curr_symbol)] if agent_1_in_dead_state else S_2[(agent_2_belief, curr_symbol)]
+                s_2 = S_2[(agent_2_belief, curr_event)]
 
                 
                 if prev_s_2 != -1 :
@@ -248,23 +250,24 @@ def q_training(env, epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1, print_proce
                     q_2[prev_s_2][agent_2_communicate] += alpha * (reward_2 + gamma * np.max(q_2[s_2]) - q_2[prev_s_2][agent_2_communicate])
                     reward_2 = 0
                 
-                agent_2_communicate = get_action(q_2, agent_1_in_dead_state, s_2, epsilon)
+                agent_2_communicate = get_action(q_2, s_2, epsilon)
                 # print(agent_2_row_num)
                 config, reward, terminated, truncated, info = env.step((agent_id, agent_2_communicate))
                 # print(reward)
                 
                 _, agent_1_belief, agent_2_belief = config
                 
-                agent_1_in_dead_state = agent_1_belief == -1
                 
-                reward_2 += reward
+                comm_cost, penalty = reward
+                
+                reward_2 += comm_cost
                                 
-                curr_symbol=info['input_alphabet']
+                curr_event=info['curr_event']
                 
                 prev_s_2 = s_2
         
-        reward_1 += reward
-        reward_2 += reward
+        reward_1 += penalty
+        reward_2 += penalty
         
         
         # Final Q-value updates
@@ -273,14 +276,3 @@ def q_training(env, epochs=10000, alpha=0.1, gamma=0.9, epsilon=0.1, print_proce
 
     return q_1, q_2
 
-q_training_env = gym.make('UOEnv-v0', render_mode=None, string_mode="training")
-
-q_1, q_2 = q_training(q_training_env, epochs=10000, alpha=0.01, gamma=0.9, epsilon=0.1)
-
-q_1_df = pd.DataFrame(q_1, columns=["do not communcate", "communicate"])
-q_2_df = pd.DataFrame(q_2, columns=["do not communcate", "communicate"])
-
-q_1_df.to_csv(f'problem_w_unobservable_events/demo_q1_table.csv')
-q_2_df.to_csv(f'problem_w_unobservable_events/demo_q2_table.csv')
-
-# Training done, go to simulation.py for simulation

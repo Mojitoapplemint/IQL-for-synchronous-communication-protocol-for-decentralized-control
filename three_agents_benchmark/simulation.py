@@ -1,0 +1,155 @@
+import numpy as np
+import gymnasium as gym
+import pandas as pd
+import three_agents_env
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
+from three_agent_q import ACTIONS
+
+q_1=[0, 3, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] 
+q_2=[0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+q_3=[0, 3, 1, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+def get_action(q_table, agent_j_in_dead_state, agent_k_in_dead_state, row_num):
+    
+    # Both agents are in dead state, only action [0,0] is possible
+    if agent_j_in_dead_state and agent_k_in_dead_state:
+        return 0 
+    
+    # If one agent is in dead state, limit actions for that agent
+    elif agent_j_in_dead_state or agent_k_in_dead_state: 
+        if agent_j_in_dead_state:
+            return np.argmax(q_table[row_num][[0,1]])  
+        else:
+            return np.argmax(q_table[row_num][[0,2]])  
+
+    # Neither agent is in dead state, all actions possible
+    return  np.argmax(q_table[row_num])
+
+env = gym.make('ThreeAgentsEnv-v1', render_mode="human", string_mode="simulation")
+
+count_list = []
+string_list = []
+returns_list = []
+result_list = []
+
+for i in range(6):
+    state, info = env.reset()
+
+    curr_event = info["curr_event"]
+    string = info["string"]
+
+    _, agent_1_obs, agent_2_obs, agent_3_obs = state
+
+    agent_1_in_dead_state = False
+    agent_2_in_dead_state = False
+    agent_3_in_dead_state = False
+    
+    terminated = False
+    simulation_result = False
+
+    count = [0,0,0]
+
+    a1_return = 0
+    a2_return = 0
+    a3_return = 0
+
+    while not(terminated):
+        if curr_event == 'a':
+            agent_id = 1
+            agent_1_row_num = agent_1_obs
+            
+            a1_action = q_1[agent_1_row_num]
+            # a1_action = get_action(q_1, agent_j_in_dead_state=agent_2_in_dead_state, agent_k_in_dead_state=agent_3_in_dead_state, row_num=agent_1_row_num)
+            # print(a1_action)
+            
+            a1_action = ACTIONS[a1_action]
+            
+            print(a1_action)
+            
+            count[0] += np.sum(a1_action)
+            
+            
+            state, reward, terminated, simulation_result, info = env.step((agent_id, a1_action))
+            
+            _, agent_1_obs, agent_2_obs, agent_3_obs = state
+            
+            agent_2_in_dead_state = agent_2_obs == -1
+            agent_3_in_dead_state = agent_3_obs == -1
+            
+            curr_event = info["curr_event"]
+            
+            communication_cost, penalty = reward
+                
+            a1_return += communication_cost
+            # print((a1_return, a2_return, a3_return))
+            
+        if curr_event == 'b':
+            agent_id = 2
+            agent_2_row_num = agent_2_obs
+            
+            a2_action = q_2[agent_2_row_num]
+            # a2_action = get_action(q_2, agent_j_in_dead_state=agent_1_in_dead_state, agent_k_in_dead_state=agent_3_in_dead_state, row_num=agent_2_row_num)
+            
+            a2_action = ACTIONS[a2_action]
+            
+            print(a2_action)
+            
+            count[1] += np.sum(a2_action)
+            
+            
+            state, reward, terminated, simulation_result, info = env.step((agent_id, a2_action))
+            
+            _, agent_1_obs, agent_2_obs, agent_3_obs = state
+            
+            communication_cost, penalty = reward
+                
+            a2_return += communication_cost
+            # print((a1_return, a2_return, a3_return))
+            
+            agent_1_in_dead_state = agent_1_obs == -1
+            agent_3_in_dead_state = agent_3_obs == -1
+            
+            curr_event = info["curr_event"]
+        if curr_event == 'c':
+            agent_id = 3
+            agent_3_row_num = agent_3_obs
+            
+            a3_action = q_3[agent_3_row_num]
+            # a3_action = get_action(q_3, agent_j_in_dead_state=agent_1_in_dead_state, agent_k_in_dead_state=agent_2_in_dead_state, row_num=agent_3_row_num)
+            
+            
+            a3_action = ACTIONS[a3_action]
+            
+            print(a3_action)
+            
+            count[2] += np.sum(a3_action)
+            
+            state, reward, terminated, simulation_result, info = env.step((agent_id, a3_action))
+            
+            communication_cost, penalty = reward
+                
+            a3_return += communication_cost
+            # print((a1_return, a2_return, a3_return))
+            
+            _, agent_1_obs, agent_2_obs, agent_3_obs = state
+            
+            agent_1_in_dead_state = agent_1_obs == -1
+            agent_2_in_dead_state = agent_2_obs == -1
+            
+            curr_event = info["curr_event"]
+
+    #     print((a1_return, a2_return, a3_return), reward)
+    # print(simulation_result)
+    
+    a1_return += penalty
+    a2_return += penalty
+    a3_return += penalty
+
+    returns_list.append((a1_return, a2_return, a3_return))
+    count_list.append(count)
+    string_list.append(string)
+    result_list.append(simulation_result)
+    
+for count, string, return_, result in zip(count_list, string_list, returns_list, result_list):
+    print(f"String: {string}, Communication Count: {count}, Returns: {return_}, Result: {result}")
