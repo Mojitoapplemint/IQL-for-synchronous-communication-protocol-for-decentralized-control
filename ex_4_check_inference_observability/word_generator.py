@@ -53,5 +53,5 @@ class WordGenerator:
 
 # testing_pool_df = pd.DataFrame(testing_pool, columns=['word'])
 
-# testing_pool_df.to_csv('check_inference_observability/simulation_words.csv', index=False)        
+# testing_pool_df.to_csv('ex_4_check_inference_observability/simulation_words.csv', index=False)        
         

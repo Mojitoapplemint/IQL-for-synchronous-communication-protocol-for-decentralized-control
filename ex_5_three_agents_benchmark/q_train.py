@@ -1,6 +1,4 @@
 
-import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 import gymnasium as gym
 import three_agents_env
@@ -8,7 +6,7 @@ import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 from three_agent_q import q_training, FOLDER_NAME
 
-env = gym.make('ThreeAgentsEnv-v0', render_mode=None, string_mode="training")
+env = gym.make('ThreeAgentsEnv-v1', render_mode=None, string_mode="training")
 q_1, q_2, q_3 = q_training(env, max_epochs=20000, alpha = 0.001, gamma=0.1, min_epsilon=0.1, print_process=True)
 
 q_1_df = pd.DataFrame(q_1, columns=["[X,X]", "[X,O]", "[O,X]", "[O,O]"])    

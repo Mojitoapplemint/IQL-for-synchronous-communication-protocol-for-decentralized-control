@@ -11,7 +11,6 @@ GAMMA = 0.1
 
 successful_protocols = pd.read_csv(f'{FOLDER_NAME}/successful_protocols.csv')
 
-# baseline_protocols = pd.read_csv("cyclic_problem_w_unobservable_events/baselines.csv")
 
 # protocols_df = pd.concat([baseline_protocols, successful_protocols], ignore_index=True)
 protocols_df = successful_protocols
@@ -195,7 +194,7 @@ print(pd.DataFrame(joint_return_values, columns=['Agent 1 Return', 'Agent 2 Retu
 # # plt.title(' of Communication Protocols')
 # plt.legend()
 # plt.grid(True)
-# plt.savefig('cyclic_problem_w_unobservable_events/cumulative_reward_for_protocols.png')
+# plt.savefig(f'{FOLDER_NAME}/cumulative_reward_for_protocols.png')
 # plt.show()
 
 communicate_counts = pd.DataFrame(communicate_counts, columns=['Agent 1 Communicate Count', 'Agent 1 Not Communicate Count', 'Agent 2 Communicate Count', 'Agent 2 Not Communicate Count'])
@@ -210,7 +209,7 @@ print(T_state_df)
 
 protocols_df = pd.concat([protocols_df, communicate_counts, T_state_df], axis=1)
 
-protocols_df.to_csv("cyclic_problem_w_unobservable_events/protocols_with_stats.csv", index=False)
+protocols_df.to_csv(f'{FOLDER_NAME}/protocols_with_stats.csv', index=False)
 
 for i in range(len(a1_protocol_list)):
     a1_protocol = a1_protocol_list[i]

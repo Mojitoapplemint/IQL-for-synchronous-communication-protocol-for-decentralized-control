@@ -6,7 +6,7 @@ import  uo_problem_env
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
-FOLDER_NAME = "problem_w_unobservable_events"
+FOLDER_NAME = "ex_2_problem_w_unobservable_events"
 
 S_1={
     (1, 'a'):0,
